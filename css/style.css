@@ -324,3 +324,32 @@ body {
     transform: translateX(5px);
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
 }
+/* Стили для подменю (аккордеона) */
+.sub-menu {
+    display: none; /* Скрыто по умолчанию */
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding-left: 20px; /* Сдвиг вправо для визуальной иерархии */
+    border-left: 2px solid #2f4f2f; /* Зеленая полоска слева */
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Стили для кнопок внутри подменю */
+.sub-btn {
+    background-color: #1a1e1b !important;
+    border-color: #2f4f2f !important;
+    font-size: 0.95em;
+}
+
+.sub-btn:hover {
+    background-color: #2f4f2f !important;
+    color: #fff;
+}
+
+/* Анимация раскрытия */
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
