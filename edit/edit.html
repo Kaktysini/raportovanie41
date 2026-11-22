@@ -13,21 +13,6 @@
             background: #1e221f; padding: 20px; border-radius: 4px; border: 1px solid #374151;
             width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
         }
-        /* Стили для заголовков секций */
-        .section-title {
-            color: #4caf50;
-            border-bottom: 1px solid #374151;
-            padding-bottom: 10px;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        /* Класс для скрытия полей в модальном окне */
-        .hidden-field {
-            display: none !important;
-        }
     </style>
 </head>
 <body>
@@ -58,9 +43,25 @@
                 <p>Загрузка данных...</p>
             </div>
         </div>
+
+        <!-- СЕКЦИЯ 3: Практические тренировки -->
+        <div id="practicalSection">
+            <h3 class="section-title">🏃 Рапорты о практических тренировках</h3>
+            <div id="practicalList">
+                <p>Загрузка данных...</p>
+            </div>
+        </div>
+
+        <!-- СЕКЦИЯ 4: Теоретические тренировки -->
+        <div id="theorySection">
+            <h3 class="section-title">📚 Рапорты о теоретических тренировках</h3>
+            <div id="theoryList">
+                <p>Загрузка данных...</p>
+            </div>
+        </div>
     </main>
 
-    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ -->
+    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ (ОБНОВЛЕНО ДЛЯ ВСЕХ ФОРМ) -->
     <div id="editModal" class="modal-overlay">
         <div class="modal-content">
             <h2 id="modalTitle" style="margin-top:0;">Редактирование рапорта</h2>
@@ -74,36 +75,25 @@
                     <input type="text" id="editReporting" required>
                 </div>
 
-                <!-- ПОЛЯ ДЛЯ РАПОРТА ОБ ИЗМЕНЕНИИ ЗВАНИЯ (Скрываются, если это запрос на повышение) -->
+                <!-- ПОЛЯ ДЛЯ РАПОРТА ОБ ИЗМЕНЕНИИ ЗВАНИЯ -->
                 <div id="group-rank" class="rank-fields">
-                    <div class="form-group">
-                        <label>Кто выдал форму</label>
-                        <input type="text" id="editIssuedBy">
-                    </div>
-                    <div class="form-group">
-                        <label>Н | П бойца</label>
-                        <input type="text" id="editSoldierInfo">
-                    </div>
-                    <div class="form-group">
-                        <label>SteamID</label>
-                        <input type="text" id="editSteamId">
-                    </div>
-                    <div class="form-group">
-                        <label>Старое звание</label>
-                        <input type="text" id="editOldRank">
-                    </div>
-                    <div class="form-group">
-                        <label>Новое звание</label>
-                        <input type="text" id="editNewRank">
-                    </div>
+                    <div class="form-group"><label>Кто выдал форму</label><input type="text" id="editIssuedBy"></div>
+                    <div class="form-group"><label>Н | П бойца</label><input type="text" id="editSoldierInfo"></div>
+                    <div class="form-group"><label>SteamID</label><input type="text" id="editSteamId"></div>
+                    <div class="form-group"><label>Старое звание</label><input type="text" id="editOldRank"></div>
+                    <div class="form-group"><label>Новое звание</label><input type="text" id="editNewRank"></div>
                 </div>
 
-                <!-- ПОЛЯ ДЛЯ ЗАПРОСА НА ПОВЫШЕНИЕ (Скрываются, если это обычный рапорт) -->
+                <!-- ПОЛЯ ДЛЯ ЗАПРОСА НА ПОВЫШЕНИЕ -->
                 <div id="group-promotion" class="promotion-fields">
-                    <div class="form-group">
-                        <label>Запрашиваю проверку на повышение в звании</label>
-                        <input type="text" id="editRequestedRank">
-                    </div>
+                    <div class="form-group"><label>Запрашиваю проверку на повышение</label><input type="text" id="editRequestedRank"></div>
+                </div>
+
+                <!-- ПОЛЯ ДЛЯ ТРЕНИРОВОК -->
+                <div id="group-training" class="training-fields">
+                    <div class="form-group"><label>Название тренировки</label><input type="text" id="editTrainingName"></div>
+                    <div class="form-group"><label>Состав / Оценки</label><textarea id="editParticipants" rows="3" style="width: 100%; background: #111312; color: #fff; border: 1px solid #374151; padding: 10px;"></textarea></div>
+                    <div class="form-group"><label>Примечание</label><textarea id="editNotes" rows="2" style="width: 100%; background: #111312; color: #fff; border: 1px solid #374151; padding: 10px;"></textarea></div>
                 </div>
 
                 <div class="form-actions" style="margin-top: 20px;">
