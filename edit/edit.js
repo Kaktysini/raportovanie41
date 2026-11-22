@@ -11,9 +11,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1571627519638114334/Lg_zk96gkUTrxQBCAm7giIxoIqIySg8GpTGZtdgTuOSJsp1K1G5Crd_prZ4U_xgy91_G';
-const PROMOTION_WEBHOOK_URL = 'ССЫЛКА_НА_ВАШ_НОВЫЙ_ВЕБХУК'; // Вставьте ваш вебхук повышений
-const TRAINING_WEBHOOK_URL = 'ССЫЛКА_НА_ВАШ_ВЕБХУК_ТРЕНИРОВОК'; // Вставьте ваш вебхук тренировок
+const DISCORD_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/report';
+const PROMOTION_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/promotion';
+const TRAINING_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/training';
 
 const rankChangeList = document.getElementById('rankChangeList');
 const promotionList = document.getElementById('promotionList');
