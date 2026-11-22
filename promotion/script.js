@@ -12,7 +12,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ВСТАВЬТЕ СЮДА ССЫЛКУ НА ВАШ НОВЫЙ ВЕБХУК ДЛЯ ПОВЫШЕНИЙ
-const PROMOTION_WEBHOOK_URL = 'https://discord.com/api/webhooks/1531695044057239572/1Ksw1z-Ui2hV-_kTYRpPZPOdPpnd1nFEP-DiUmftq8zfh7hI9vn4XbYiTkUS2ga3G--z';
+const PROMOTION_WEBHOOK_URL = 'https://discord.com/api/webhooks/1574126571726307448/5USj9sqZCpjJoSQyMpgAwwjp4E1B2PvNX9ajDrpjNa-LrzgXcuccvoJbdorpYKzX9Xdk';
 
 auth.onAuthStateChanged((user) => {
     if (!user) {
