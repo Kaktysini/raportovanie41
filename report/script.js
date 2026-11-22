@@ -10,7 +10,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1571627519638114334/Lg_zk96gkUTrxQBCAm7giIxoIqIySg8GpTGZtdgTuOSJsp1K1G5Crd_prZ4U_xgy91_G';
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1530734561216958584/ViVwyg63gbSQk7wOZt0I3Uk04sPJWzMMYb74au0LMye-LHCISlIr3oXvKuJp_DoTseuW';
 
 auth.onAuthStateChanged((user) => {
     if (!user) {
