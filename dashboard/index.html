@@ -27,7 +27,7 @@
         <!-- Меню с карточками -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
             
-            <!-- Карточка: Подать рапорт (теперь открывает окно) -->
+            <!-- Карточка: Подать рапорт -->
             <div class="menu-card" onclick="openFormModal()" style="cursor: pointer;">
                 <h3>📝 Подать рапорт</h3>
                 <p>Создать новый рапорт (выбор формы).</p>
@@ -59,15 +59,29 @@
             <p style="color: #9ca3af; margin-bottom: 20px;">Доступные бланки для заполнения:</p>
             
             <div style="display: flex; flex-direction: column; gap: 10px;">
-                <!-- ФОРМА 1 (Уже существует) -->
+                <!-- Обычные формы -->
                 <a href="../report/index.html" class="form-select-btn">
                     📄 Рапорт об изменении звания
                 </a>
-
-                <!-- ДОБАВЛЕННАЯ НОВАЯ ФОРМА -->
                 <a href="../promotion/index.html" class="form-select-btn">
                     📄 Запрос на проверку готовности к повышению
                 </a>
+
+                <!-- Кнопка-аккордеон для тренировок -->
+                <button type="button" class="form-select-btn" onclick="toggleTrainingMenu()" style="width: 100%; text-align: left; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🏃 Тренировки</span>
+                    <span id="trainingArrow" style="transition: transform 0.3s;">▼</span>
+                </button>
+
+                <!-- Скрытое подменю тренировок -->
+                <div id="trainingSubMenu" class="sub-menu">
+                    <a href="../training/practical.html" class="form-select-btn sub-btn">
+                        ➔ Практическая тренировка
+                    </a>
+                    <a href="../training/theory.html" class="form-select-btn sub-btn">
+                        ➔ Теоретическая тренировка
+                    </a>
+                </div>
             </div>
 
             <div class="form-actions" style="margin-top: 25px; border-top: none; padding-top: 0;">
