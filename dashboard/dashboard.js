@@ -29,6 +29,23 @@ window.openFormModal = function() {
 
 window.closeFormModal = function() {
     document.getElementById('formModal').style.display = 'none';
+    // При закрытии окна прячем подменю обратно (чтобы в следующий раз оно было закрыто)
+    document.getElementById('trainingSubMenu').style.display = 'none';
+    document.getElementById('trainingArrow').style.transform = 'rotate(0deg)';
+}
+
+// Логика раскрытия/скрытия меню тренировок
+window.toggleTrainingMenu = function() {
+    const subMenu = document.getElementById('trainingSubMenu');
+    const arrow = document.getElementById('trainingArrow');
+    
+    if (subMenu.style.display === 'none' || subMenu.style.display === '') {
+        subMenu.style.display = 'flex'; // Показываем
+        arrow.style.transform = 'rotate(180deg)'; // Крутим стрелочку вверх
+    } else {
+        subMenu.style.display = 'none'; // Скрываем
+        arrow.style.transform = 'rotate(0deg)'; // Возвращаем стрелочку
+    }
 }
 
 // Закрытие окна при клике вне его области (на темный фон)
