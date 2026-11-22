@@ -12,7 +12,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 
 // ВСТАВЬТЕ СЮДА ССЫЛКУ НА ВАШ НОВЫЙ ВЕБХУК ДЛЯ ПОВЫШЕНИЙ
-const PROMOTION_WEBHOOK_URL = 'https://discord.com/api/webhooks/1574126571726307448/5USj9sqZCpjJoSQyMpgAwwjp4E1B2PvNX9ajDrpjNa-LrzgXcuccvoJbdorpYKzX9Xdk';
+const PROMOTION_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/promotion';
 
 auth.onAuthStateChanged((user) => {
     if (!user) {
