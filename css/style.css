@@ -1,321 +1,28 @@
-/* Базовые настройки и шрифты */
-body {
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background-color: #121512; /* Темный тактический фон */
-    color: #d1d5db;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-/* Шапка сайта */
-.site-header {
-    background-color: #1a1e1b;
-    border-bottom: 3px solid #2f4f2f; /* Зеленая полоса снизу */
-    padding: 20px;
-    text-align: center;
-}
-
-.site-header h1 {
-    margin: 0;
-    font-size: 1.4em;
-    letter-spacing: 2px;
-    color: #e5e7eb;
-    text-transform: uppercase;
-}
-
-.site-header p {
-    margin: 5px 0 0;
-    font-size: 0.85em;
-    color: #6b7280;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-/* Контейнер формы */
-.report-form-container {
-    max-width: 800px;
-    width: 90%;
-    margin: 40px auto;
-    background-color: #1e221f;
-    border: 1px solid #374151;
-    border-top: 4px solid #2f4f2f; /* Акцентная полоса */
-    border-radius: 4px; /* Минимум скруглений */
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-    padding: 30px 40px;
-}
-
-.form-header {
-    border-bottom: 1px solid #374151;
-    margin-bottom: 25px;
-    padding-bottom: 15px;
-}
-
-.form-header h2 {
-    margin: 0;
-    color: #f3f4f6;
-    font-size: 1.5em;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.form-header p {
-    margin: 8px 0 0;
-    color: #9ca3af;
-    font-size: 0.9em;
-}
-
-/* Сетка для полей (2 колонки на ПК, 1 на телефонах) */
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group.full-width {
-    grid-column: span 2;
-}
-
-/* Стилизация подписей */
-.form-group label {
-    font-size: 0.85em;
-    font-weight: 600;
-    color: #9ca3af;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Поля ввода */
-.form-group input, 
-.form-group select {
-    width: 100%;
-    padding: 12px 15px;
-    background-color: #111312;
-    border: 1px solid #374151;
-    border-radius: 4px;
-    color: #f3f4f6;
-    font-size: 1em;
-    font-family: 'Consolas', 'Courier New', monospace; /* Шрифт для данных */
-    box-sizing: border-box;
-    transition: all 0.2s ease;
-}
-
-/* Эффект при клике на поле */
-.form-group input:focus, 
-.form-group select:focus {
-    outline: none;
-    border-color: #4caf50;
-    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-    background-color: #151816;
-}
-
-/* Кнопки */
-.form-actions {
-    display: flex;
-    gap: 15px;
-    margin-top: 30px;
-    border-top: 1px solid #374151;
-    padding-top: 25px;
-}
-
-/* --- АНИМИРОВАННЫЕ КНОПКИ --- */
-.form-actions button, .btn-logout, .menu-card {
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    will-change: transform, box-shadow;
-}
-
-/* Эффект нажатия (тактильность) */
-.form-actions button:active, .btn-logout:active, .menu-card:active {
-    transform: scale(0.96) translateY(0);
-}
-
-/* Кнопка ОТПРАВИТЬ */
-.btn-submit {
-    background-color: #2f4f2f;
-    color: #fff;
-    flex-grow: 1;
-    border: 1px solid #3e6b3e;
-    padding: 14px 20px;
-    font-size: 0.95em;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-submit:hover {
-    background-color: #3e6b3e;
-    box-shadow: 0 0 15px rgba(76, 175, 80, 0.4); /* Зеленое свечение */
-    transform: translateY(-3px); /* Поднятие */
-}
-
-/* Кнопка СБРОСИТЬ */
-.btn-reset {
-    background-color: transparent;
-    color: #9ca3af;
-    border: 1px solid #4b5563;
-    padding: 14px 20px;
-    font-size: 0.95em;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.btn-reset:hover {
-    background-color: #374151;
-    color: #fff;
-    transform: translateY(-3px);
-}
-
-/* Кнопка ВЫЙТИ (новая) */
-.btn-logout {
-    background: none;
-    border: 1px solid #ef4444;
-    color: #ef4444;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-}
-
-.btn-logout:hover {
-    background-color: rgba(239, 68, 68, 0.1); /* Легкий красный фон */
-    box-shadow: 0 0 10px rgba(239, 68, 68, 0.3); /* Красное свечение */
-    transform: translateY(-2px);
-}
-
-/* Улучшенная анимация для карточек в меню */
-.menu-card:hover {
-    border-color: #4caf50;
-    background-color: #151816;
-    transform: translateY(-5px); /* Карточка поднимается выше */
-    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.15); /* Более выраженная тень */
-}
-
-.btn-reset:hover {
-    background-color: #374151;
-    color: #fff;
-}
-
-/* Статус отправки (Успех/Ошибка) */
-.form-status {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 4px;
-    text-align: center;
-    font-weight: bold;
-    display: none; /* Скрыто по умолчанию, JS включит */
-}
-
-.form-status.success {
-    display: block;
-    background-color: rgba(21, 87, 36, 0.2);
-    color: #4caf50;
-    border: 1px solid #2f4f2f;
-}
-
-.form-status.error {
-    display: block;
-    background-color: rgba(114, 28, 36, 0.2);
-    color: #ef4444;
-    border: 1px solid #7f1d1d;
-}
-
-/* Адаптивность для мобильных устройств */
-@media (max-width: 600px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    .form-group.full-width {
-        grid-column: span 1;
-    }
-    .report-form-container {
-        padding: 20px;
-        width: 95%;
-    }
-}
-/* Стили для карточек главного меню */
-.menu-card {
-    display: block;
-    background-color: #111312;
-    border: 1px solid #374151;
-    border-radius: 4px;
-    padding: 20px;
-    text-decoration: none;
-    color: #d1d5db;
-    transition: all 0.2s ease;
-}
-
-.menu-card:hover {
-    border-color: #4caf50;
-    background-color: #151816;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.1);
-}
-
-.menu-card h3 {
-    margin-top: 0;
-    color: #f3f4f6;
-    font-size: 1.2em;
-}
-
-.menu-card p {
-    margin-bottom: 0;
-    font-size: 0.9em;
-    color: #9ca3af;
-}
-/* Анимация пульсации */
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
-}
-
-.btn-submit.loading {
-    animation: pulse 1.5s infinite;
-    background-color: #4caf50;
-    pointer-events: none; /* Блокирует повторные нажатия */
-    opacity: 0.8;
-}
-/* --- Стили для модального окна выбора формы --- */
-.modal-overlay {
-    display: none; 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); z-index: 1000; 
-    justify-content: center; align-items: center;
-}
-
-.modal-content {
-    background: #1e221f; padding: 25px; border-radius: 4px; 
-    border: 1px solid #374151; border-top: 4px solid #2f4f2f;
-    width: 90%; max-width: 450px; max-height: 90vh; overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-}
-
-/* Кнопки выбора формы внутри окна */
+/* --- Единый стиль для всех кнопок выбора формы --- */
 .form-select-btn {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
     background-color: #111312;
     border: 1px solid #374151;
     color: #e5e7eb;
     text-decoration: none;
-    padding: 15px 20px;
+    padding: 12px 20px;
     border-radius: 4px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
     transition: all 0.2s ease;
+    cursor: pointer;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Чтобы кнопка-аккордеон не отличалась от ссылок */
+button.form-select-btn {
+    text-align: left;
 }
 
 .form-select-btn:hover {
@@ -324,32 +31,42 @@ body {
     transform: translateX(5px);
     box-shadow: 0 0 10px rgba(76, 175, 80, 0.2);
 }
-/* Стили для подменю (аккордеона) */
+
+/* Стили для подменю (аккордеон) */
 .sub-menu {
-    display: none; /* Скрыто по умолчанию */
+    display: none; 
     flex-direction: column;
     gap: 8px;
     margin-top: 5px;
     margin-bottom: 5px;
-    padding-left: 20px; /* Сдвиг вправо для визуальной иерархии */
-    border-left: 2px solid #2f4f2f; /* Зеленая полоска слева */
+    padding-left: 15px; 
+    border-left: 2px solid #2f4f2f; 
     animation: slideDown 0.3s ease-out;
 }
 
-/* Стили для кнопок внутри подменю */
 .sub-btn {
     background-color: #1a1e1b !important;
     border-color: #2f4f2f !important;
-    font-size: 0.95em;
 }
 
 .sub-btn:hover {
     background-color: #2f4f2f !important;
-    color: #fff;
+    transform: translateX(5px);
 }
 
-/* Анимация раскрытия */
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Стили для заголовков секций в личном кабинете */
+.section-title {
+    color: #4caf50;
+    border-bottom: 1px solid #374151;
+    padding-bottom: 10px;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
