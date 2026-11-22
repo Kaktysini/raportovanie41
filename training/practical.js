@@ -10,7 +10,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/1529228496319156376/sVAKsdB8XxKMldIT-7RXSm7GjmTfuuxjcntvqpbdcf_1PIZdduaJwA50mDboP29fVCcr';
+const WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/training';
 
 auth.onAuthStateChanged((user) => { if (!user) setTimeout(() => { if (!auth.currentUser) window.location.href = '../login/login.html'; }, 1000); });
 
