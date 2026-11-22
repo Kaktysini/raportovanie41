@@ -185,7 +185,7 @@ body {
 .form-status.success { display: block; background-color: rgba(21, 87, 36, 0.2); color: #4caf50; border: 1px solid #2f4f2f; }
 .form-status.error { display: block; background-color: rgba(114, 28, 36, 0.2); color: #ef4444; border: 1px solid #7f1d1d; }
 
-/* --- Стили для карточек главного меню --- */
+/* --- Карточки главного меню (без луча) --- */
 .menu-card {
     display: block;
     background-color: #111312;
@@ -207,7 +207,7 @@ body {
 .menu-card h3 { margin-top: 0; color: #f3f4f6; font-size: 1.2em; }
 .menu-card p { margin-bottom: 0; font-size: 0.9em; color: #9ca3af; }
 
-/* --- Кнопки выбора формы и эффект "Луча света" --- */
+/* --- Кнопки выбора формы --- */
 .form-select-btn {
     display: flex;
     align-items: center;
@@ -227,42 +227,6 @@ body {
     font-family: inherit;
     width: 100%;
     box-sizing: border-box;
-    
-    /* Для луча света */
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-/* Псевдоэлемент для луча (применяется ко всем кнопкам) */
-.menu-card::before,
-.form-select-btn::before,
-.btn-submit::before,
-.btn-reset::before,
-.btn-logout::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, 
-        transparent, 
-        rgba(76, 175, 80, 0.3) 50%, /* Зеленоватый луч в цвет темы */
-        transparent
-    );
-    transform: skewX(-25deg);
-    transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1); /* Плавный и медленный проход */
-    z-index: -1;
-}
-
-/* Двигаем луч при наведении */
-.menu-card:hover::before,
-.form-select-btn:hover::before,
-.btn-submit:hover::before,
-.btn-reset:hover::before,
-.btn-logout:hover::before {
-    left: 150%;
 }
 
 .form-select-btn:hover {
@@ -274,7 +238,6 @@ body {
 
 button.form-select-btn { text-align: left; }
 
-/* Подменю тренировок */
 .sub-menu {
     display: none; 
     flex-direction: column;
@@ -305,6 +268,55 @@ button.form-select-btn { text-align: left; }
     letter-spacing: 1px;
 }
 
+/* --- АНИМАЦИЯ "БЕГУЩЕГО ЛУЧА" ТОЛЬКО ДЛЯ КНОПОК --- */
+.form-select-btn,
+.btn-submit,
+.btn-reset,
+.btn-logout {
+    position: relative;
+    overflow: hidden;
+}
+
+.form-select-btn::after,
+.btn-submit::after,
+.btn-reset::after,
+.btn-logout::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 100%;
+    background: linear-gradient(
+        90deg, 
+        transparent 0%, 
+        transparent 40%, 
+        rgba(76, 175, 80, 0.3) 50%,
+        transparent 60%, 
+        transparent 100%
+    );
+    pointer-events: none;
+    transform: translateX(-100%);
+    animation: scan-beam 6s infinite linear; 
+}
+
+.btn-logout::after {
+    background: linear-gradient(
+        90deg, 
+        transparent 0%, 
+        transparent 40%, 
+        rgba(239, 68, 68, 0.3) 50%, 
+        transparent 60%, 
+        transparent 100%
+    );
+}
+
+@keyframes scan-beam {
+    0% { transform: translateX(-100%); }
+    30% { transform: translateX(100%); }
+    100% { transform: translateX(100%); }
+}
+
 /* --- МОДАЛЬНЫЕ ОКНА И АНИМАЦИЯ "СТАРОГО ТЕЛЕВИЗОРА" --- */
 .modal-overlay {
     display: none; 
@@ -317,30 +329,26 @@ button.form-select-btn { text-align: left; }
     z-index: 1000; 
     justify-content: center; 
     align-items: center;
-    backdrop-filter: blur(2px); /* Легкое размытие фона */
+    backdrop-filter: blur(2px); 
 }
 
-/* Анимация включения кинескопа */
 @keyframes crt-on {
     0% {
         transform: scale(0.01, 0.01);
         opacity: 0;
         filter: brightness(5) blur(10px);
     }
-    30% {
-        /* Появляется яркая точка */
+    20% {
         transform: scale(0.01, 0.01);
         opacity: 1;
         filter: brightness(5) blur(5px);
     }
-    60% {
-        /* Точка растягивается в горизонтальную линию */
+    50% {
         transform: scale(1, 0.02);
         opacity: 1;
         filter: brightness(3) blur(2px);
     }
     100% {
-        /* Линия раскрывается в полноценное окно */
         transform: scale(1, 1);
         opacity: 1;
         filter: brightness(1) blur(0);
@@ -359,9 +367,8 @@ button.form-select-btn { text-align: left; }
     overflow-y: auto;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     
-    /* Применяем анимацию TV */
-    animation: crt-on 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-    transform-origin: center center; /* Раскрывается из центра */
+    animation: crt-on 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    transform-origin: center center;
 }
 
 /* Адаптивность для мобильных */
