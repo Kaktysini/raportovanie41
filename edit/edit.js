@@ -183,7 +183,6 @@ document.getElementById('editForm').addEventListener('submit', async function(ev
         );
     }
 }
-        }
         
         alert('Запись успешно обновлена!');
         closeModal();
