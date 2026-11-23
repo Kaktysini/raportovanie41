@@ -10,7 +10,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev/';
+const WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev';
 
 auth.onAuthStateChanged((user) => { if (!user) setTimeout(() => { if (!auth.currentUser) window.location.href = '../login/login.html'; }, 1000); });
 
