@@ -422,26 +422,43 @@ else {
     await docRef.update(updatedData);
         
         const docSnap = await docRef.get();
-        const messageId = docSnap.data().discordMessageId;
-        
-        if (messageId && webhookUrl) {
-    const response = await fetch(
-        `${webhookUrl}/messages/${messageId}`,
-        {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        }
-    );
 
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(
-            `Ошибка обновления Discord: HTTP ${response.status}. ${errorText}`
-        );
+if (!docSnap.exists) {
+    throw new Error('Не удалось найти сохранённый рапорт.');
+}
+
+const messageId = docSnap.data().discordMessageId;
+
+// Проверяем наличие ID сообщения Discord
+if (!messageId) {
+    throw new Error(
+        'Рапорт сохранён в базе, но у него отсутствует ID сообщения Discord. Обновление Discord невозможно.'
+    );
+}
+
+// Проверяем адрес Worker
+if (!webhookUrl) {
+    throw new Error('Не указан адрес Discord Worker.');
+}
+
+// Обновляем первоначальное сообщение Discord
+const response = await fetch(
+    `${webhookUrl}/messages/${messageId}`,
+    {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
     }
+);
+
+if (!response.ok) {
+    const errorText = await response.text();
+
+    throw new Error(
+        `Рапорт сохранён в базе, но Discord не обновился. HTTP ${response.status}. ${errorText}`
+    );
 }
         
         alert('Запись успешно обновлена!');
