@@ -164,10 +164,25 @@ document.getElementById('editForm').addEventListener('submit', async function(ev
         const docSnap = await docRef.get();
         const messageId = docSnap.data().discordMessageId;
         
-        if (messageId && webhookUrl.startsWith('https://discord.com')) {
-            await fetch(`${webhookUrl}/messages/${messageId}`, {
-                method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-            });
+        if (messageId && webhookUrl) {
+    const response = await fetch(
+        `${webhookUrl}/messages/${messageId}`,
+        {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        }
+    );
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(
+            `Ошибка обновления Discord: HTTP ${response.status}. ${errorText}`
+        );
+    }
+}
         }
         
         alert('Запись успешно обновлена!');
