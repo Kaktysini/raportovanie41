@@ -73,9 +73,7 @@ async function loadReports(user) {
                     card.innerHTML = `<p><strong>Боец:</strong> ${data.soldierInfo}</p><p><strong>Звание:</strong> ${data.oldRank} ➔ ${data.newRank}</p><p><strong>Дата:</strong> ${data.reportDate}</p>${btnHTML}`;
                     rankChangeList.appendChild(card);
                 }
-            } else {
-                doc.ref.delete().catch(err => console.error("Ошибка удаления:", err));
-            }
+            } 
         });
 
         if (!hasRank) rankChangeList.innerHTML = '<p>У вас нет активных рапортов этого типа.</p>';
