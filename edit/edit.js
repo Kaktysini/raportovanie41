@@ -89,41 +89,105 @@ async function loadReports(user) {
 }
 
 window.openModal = function(docId, data) {
+
+    const formType = data.formType || "Новый рапорт";
+
     document.getElementById('editDocId').value = docId;
-    document.getElementById('editFormType').value = data.formType || "Новый рапорт";
+    document.getElementById('editFormType').value = formType;
     document.getElementById('editReporting').value = data.reporting || '';
 
     const groupRank = document.getElementById('group-rank');
     const groupPromo = document.getElementById('group-promotion');
     const groupTraining = document.getElementById('group-training');
+
+    const practicalFields = document.getElementById('group-practical-details');
+    const groupDate = document.getElementById('group-date');
+
     const modalTitle = document.getElementById('modalTitle');
 
+    // Скрываем все группы полей
     groupRank.style.display = 'none';
     groupPromo.style.display = 'none';
     groupTraining.style.display = 'none';
+    practicalFields.style.display = 'none';
 
-    if (data.formType === "Запрос на повышение") {
+    // Загружаем дату для всех форм, кроме запроса на повышение
+    groupDate.style.display =
+        formType === "Запрос на повышение" ? 'none' : 'block';
+
+    document.getElementById('editReportDate').value =
+        data.reportDate || '';
+
+    // Запрос на повышение
+    if (formType === "Запрос на повышение") {
+
         modalTitle.textContent = "Редактирование запроса на повышение";
+
         groupPromo.style.display = 'block';
-        document.getElementById('editRequestedRank').value = data.requestedRank || '';
-    } else if (data.formType === "Практическая тренировка" || data.formType === "Теоретическая тренировка") {
-        modalTitle.textContent = "Редактирование тренировки";
-        groupTraining.style.display = 'block';
-        document.getElementById('editTrainingName').value = data.trainingName || '';
-        document.getElementById('editParticipants').value = data.participants || '';
-        document.getElementById('editNotes').value = data.notes || '';
-    } else {
-        modalTitle.textContent = "Редактирование рапорта";
-        groupRank.style.display = 'block';
-        document.getElementById('editIssuedBy').value = data.issuedBy || '';
-        document.getElementById('editSoldierInfo').value = data.soldierInfo || '';
-        document.getElementById('editSteamId').value = data.steamId || '';
-        document.getElementById('editOldRank').value = data.oldRank || '';
-        document.getElementById('editNewRank').value = data.newRank || '';
+
+        document.getElementById('editRequestedRank').value =
+            data.requestedRank || '';
+
     }
-    
+
+    // Практическая или теоретическая тренировка
+    else if (
+        formType === "Практическая тренировка" ||
+        formType === "Теоретическая тренировка"
+    ) {
+
+        modalTitle.textContent = "Редактирование тренировки";
+
+        groupTraining.style.display = 'block';
+
+        document.getElementById('editTrainingName').value =
+            data.trainingName || '';
+
+        document.getElementById('editParticipants').value =
+            data.participants || '';
+
+        document.getElementById('editNotes').value =
+            data.notes || '';
+
+        // Дополнительные поля практической тренировки
+        if (formType === "Практическая тренировка") {
+
+            practicalFields.style.display = 'block';
+
+            document.getElementById('editLocation').value =
+                data.location || '';
+
+            document.getElementById('editDescription').value =
+                data.description || '';
+        }
+
+    }
+
+    // Рапорт об изменении звания
+    else {
+
+        modalTitle.textContent = "Редактирование рапорта";
+
+        groupRank.style.display = 'block';
+
+        document.getElementById('editIssuedBy').value =
+            data.issuedBy || '';
+
+        document.getElementById('editSoldierInfo').value =
+            data.soldierInfo || '';
+
+        document.getElementById('editSteamId').value =
+            data.steamId || '';
+
+        document.getElementById('editOldRank').value =
+            data.oldRank || '';
+
+        document.getElementById('editNewRank').value =
+            data.newRank || '';
+    }
+
     document.getElementById('editModal').style.display = 'flex';
-}
+};
 
 window.closeModal = function() {
     document.getElementById('editModal').style.display = 'none';
@@ -134,28 +198,194 @@ document.getElementById('editForm').addEventListener('submit', async function(ev
     const docId = document.getElementById('editDocId').value;
     const formType = document.getElementById('editFormType').value;
     
-    let updatedData = { reporting: document.getElementById('editReporting').value };
-    let payload = {};
-    let webhookUrl = DISCORD_WEBHOOK_URL;
+    const reportDate = document.getElementById('editReportDate').value;
 
-    if (formType === "Запрос на повышение") {
-        updatedData.requestedRank = document.getElementById('editRequestedRank').value;
-        webhookUrl = PROMOTION_WEBHOOK_URL;
-        payload = { embeds: [{ title: "Запрос на повышение (ИЗМЕНЕНО)", color: 9109504, fields: [{ name: "Докладывает:", value: `\`${updatedData.reporting}\`` }, { name: "Запрос:", value: updatedData.requestedRank }] }] };
-    } else if (formType === "Практическая тренировка" || formType === "Теоретическая тренировка") {
-        updatedData.trainingName = document.getElementById('editTrainingName').value;
-        updatedData.participants = document.getElementById('editParticipants').value;
-        updatedData.notes = document.getElementById('editNotes').value;
-        webhookUrl = TRAINING_WEBHOOK_URL;
-        payload = { embeds: [{ title: "Тренировка (ИЗМЕНЕНО)", color: 9109504, fields: [{ name: "Докладывает:", value: `\`${updatedData.reporting}\`` }, { name: "Название:", value: updatedData.trainingName }, { name: "Состав:", value: `\`\`\`\n${updatedData.participants}\n\`\`\`` }] }] };
-    } else {
-        updatedData.issuedBy = document.getElementById('editIssuedBy').value;
-        updatedData.soldierInfo = document.getElementById('editSoldierInfo').value;
-        updatedData.steamId = document.getElementById('editSteamId').value;
-        updatedData.oldRank = document.getElementById('editOldRank').value;
-        updatedData.newRank = document.getElementById('editNewRank').value;
-        payload = { embeds: [{ title: "📝 РАПОРТ (Отредактировано бойцом)", color: 9109504, fields: [{ name: "Докладывает:", value: `\`${updatedData.reporting}\`` }, { name: "Изменение звания:", value: `~~${updatedData.oldRank}~~ ➔ **${updatedData.newRank}**` }] }] };
+let updatedData = {
+    reporting: document.getElementById('editReporting').value
+};
+
+let payload = {};
+let webhookUrl = DISCORD_WEBHOOK_URL;
+
+
+// ЗАПРОС НА ПОВЫШЕНИЕ
+if (formType === "Запрос на повышение") {
+
+    updatedData.requestedRank =
+        document.getElementById('editRequestedRank').value;
+
+    webhookUrl = PROMOTION_WEBHOOK_URL;
+
+    payload = {
+        embeds: [{
+            title: "Запрос на повышение (ИЗМЕНЕНО)",
+            color: 9109504,
+            fields: [
+                {
+                    name: "Докладывает:",
+                    value: `\`${updatedData.reporting}\``,
+                    inline: false
+                },
+                {
+                    name: "Запрос:",
+                    value: updatedData.requestedRank,
+                    inline: false
+                }
+            ]
+        }]
+    };
+
+}
+
+
+// ПРАКТИЧЕСКАЯ И ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
+else if (
+    formType === "Практическая тренировка" ||
+    formType === "Теоретическая тренировка"
+) {
+
+    updatedData.trainingName =
+        document.getElementById('editTrainingName').value;
+
+    updatedData.participants =
+        document.getElementById('editParticipants').value;
+
+    updatedData.notes =
+        document.getElementById('editNotes').value;
+
+    updatedData.reportDate = reportDate;
+
+    webhookUrl = TRAINING_WEBHOOK_URL;
+
+    const trainingFields = [
+        {
+            name: "Докладывает:",
+            value: `\`${updatedData.reporting}\``,
+            inline: false
+        },
+        {
+            name: "Название:",
+            value: `**${updatedData.trainingName}**`,
+            inline: false
+        }
+    ];
+
+    // Дополнительные данные практической тренировки
+    if (formType === "Практическая тренировка") {
+
+        updatedData.location =
+            document.getElementById('editLocation').value;
+
+        updatedData.description =
+            document.getElementById('editDescription').value;
+
+        trainingFields.push(
+            {
+                name: "Место проведения:",
+                value: updatedData.location || "Не указано",
+                inline: false
+            },
+            {
+                name: "Описание:",
+                value: updatedData.description || "Не указано",
+                inline: false
+            }
+        );
+
     }
+
+    trainingFields.push(
+        {
+            name: "Состав:",
+            value: `\`\`\`\n${updatedData.participants}\n\`\`\``,
+            inline: false
+        },
+        {
+            name: "Примечание:",
+            value: updatedData.notes || "Нет",
+            inline: false
+        },
+        {
+            name: "Дата:",
+            value: updatedData.reportDate || "Не указана",
+            inline: false
+        }
+    );
+
+    payload = {
+        embeds: [{
+            title: formType === "Практическая тренировка"
+                ? "Практическая тренировка (ИЗМЕНЕНО)"
+                : "Теоретическая тренировка (ИЗМЕНЕНО)",
+
+            color: 9109504,
+            fields: trainingFields
+        }]
+    };
+
+}
+
+
+// РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
+else {
+
+    updatedData.issuedBy =
+        document.getElementById('editIssuedBy').value;
+
+    updatedData.soldierInfo =
+        document.getElementById('editSoldierInfo').value;
+
+    updatedData.steamId =
+        document.getElementById('editSteamId').value;
+
+    updatedData.oldRank =
+        document.getElementById('editOldRank').value;
+
+    updatedData.newRank =
+        document.getElementById('editNewRank').value;
+
+    updatedData.reportDate = reportDate;
+
+    payload = {
+        embeds: [{
+            title: "📝 РАПОРТ (Отредактировано бойцом)",
+            color: 9109504,
+            fields: [
+                {
+                    name: "Докладывает:",
+                    value: `\`${updatedData.reporting}\``,
+                    inline: false
+                },
+                {
+                    name: "Кто выдал форму:",
+                    value: `\`${updatedData.issuedBy}\``,
+                    inline: false
+                },
+                {
+                    name: "Н | П бойца:",
+                    value: updatedData.soldierInfo || "Не указано",
+                    inline: false
+                },
+                {
+                    name: "Изменение звания:",
+                    value: `~~${updatedData.oldRank}~~ ➔ **${updatedData.newRank}**`,
+                    inline: false
+                },
+                {
+                    name: "SteamID:",
+                    value: `\`${updatedData.steamId}\``,
+                    inline: false
+                },
+                {
+                    name: "Дата рапорта:",
+                    value: updatedData.reportDate || "Не указана",
+                    inline: false
+                }
+            ]
+        }]
+    };
+
+}
 
     try {
         const docRef = db.collection('reports').doc(docId);
