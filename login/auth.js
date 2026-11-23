@@ -9,7 +9,6 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore(); // ВАЖНО: добавили базу данных для создания профиля
 
 let isLoginMode = true; 
 
@@ -35,25 +34,13 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
 
     try {
         if (isLoginMode) {
-            // ВХОД
             await auth.signInWithEmailAndPassword(fakeEmail, password);
         } else {
-            // РЕГИСТРАЦИЯ
-            const userCredential = await auth.createUserWithEmailAndPassword(fakeEmail, password);
-            const user = userCredential.user;
-            
-            // Создаем запись в базе данных users с начальным уровнем 0
-            await db.collection('users').doc(user.uid).set({
-                soldierNumber: number,
-                level: 0, 
-                rank: "Рядовой-рекрут", 
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
+            await auth.createUserWithEmailAndPassword(fakeEmail, password);
         }
         window.location.href = '../dashboard/index.html';
 
     } catch (error) {
-        // ОБРАБОТКА ОШИБОК
         if (error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
             statusDiv.textContent = 'Данного пользователя нет в базе данных (или введен неверный пароль).';
         } 
