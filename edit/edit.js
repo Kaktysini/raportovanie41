@@ -29,7 +29,7 @@ const theoryList = document.getElementById('theoryList');
 
 
 // ==========================================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// ВЫБОР WEBHOOK ПО ТИПУ РАПОРТА
 // ==========================================
 
 function getWebhookUrl(formType) {
@@ -48,6 +48,10 @@ function getWebhookUrl(formType) {
     return DISCORD_WEBHOOK_URL;
 }
 
+
+// ==========================================
+// ПРОВЕРКА СРОКА ДЕЙСТВИЯ РАПОРТА
+// ==========================================
 
 function isReportActive(data) {
 
@@ -113,37 +117,38 @@ function createDiscordPayload(data, formType) {
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting}\`,
+                value: `\`${data.reporting || ""}\``,
                 inline: false
             },
             {
                 name: "Кто выдал форму:",
-                value: `\`${data.issuedBy}\``,
+                value: `\`${data.issuedBy || ""}\``,
                 inline: false
             },
             {
                 name: "Н | П бойца:",
-                value: `${data.soldierInfo}`,
+                value: `${data.soldierInfo || ""}`,
                 inline: false
             },
             {
                 name: "Изменение звания:",
-                value: `~~${data.oldRank}~~ ➔ **${data.newRank}**`,
+                value: `~~${data.oldRank || ""}~~ ➔ **${data.newRank || ""}**`,
                 inline: false
             },
             {
                 name: "SteamID:",
-                value: `\`${data.steamId}\``,
+                value: `\`${data.steamId || ""}\``,
                 inline: false
             },
             {
                 name: "Дата рапорта:",
-                value: `${data.reportDate}`,
+                value: `${data.reportDate || ""}`,
                 inline: false
             }
         ];
 
     }
+
 
     // ЗАПРОС НА ПОВЫШЕНИЕ
 
@@ -154,17 +159,18 @@ function createDiscordPayload(data, formType) {
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting}\``,
+                value: `\`${data.reporting || ""}\``,
                 inline: false
             },
             {
                 name: "Запрашиваю проверку на повышение в звании",
-                value: `**${data.requestedRank}**`,
+                value: `**${data.requestedRank || ""}**`,
                 inline: false
             }
         ];
 
     }
+
 
     // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
 
@@ -175,22 +181,22 @@ function createDiscordPayload(data, formType) {
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting}\``,
+                value: `\`${data.reporting || ""}\``,
                 inline: false
             },
             {
                 name: "Тренировка:",
-                value: `**${data.trainingName}** (${data.location})`,
+                value: `**${data.trainingName || ""}** (${data.location || ""})`,
                 inline: false
             },
             {
                 name: "Состав:",
-                value: `\`\`\`\n${data.participants}\n\`\`\``,
+                value: `\`\`\`\n${data.participants || ""}\n\`\`\``,
                 inline: false
             },
             {
                 name: "Описание:",
-                value: data.description,
+                value: data.description || "",
                 inline: false
             },
             {
@@ -200,12 +206,13 @@ function createDiscordPayload(data, formType) {
             },
             {
                 name: "Дата:",
-                value: data.reportDate,
+                value: data.reportDate || "",
                 inline: false
             }
         ];
 
     }
+
 
     // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
 
@@ -216,17 +223,17 @@ function createDiscordPayload(data, formType) {
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting}\``,
+                value: `\`${data.reporting || ""}\``,
                 inline: false
             },
             {
                 name: "Название:",
-                value: `**${data.trainingName}**`,
+                value: `**${data.trainingName || ""}**`,
                 inline: false
             },
             {
                 name: "Оценки состава:",
-                value: `\`\`\`\n${data.participants}\n\`\`\``,
+                value: `\`\`\`\n${data.participants || ""}\n\`\`\``,
                 inline: false
             },
             {
@@ -236,7 +243,7 @@ function createDiscordPayload(data, formType) {
             },
             {
                 name: "Дата:",
-                value: data.reportDate,
+                value: data.reportDate || "",
                 inline: false
             }
         ];
@@ -266,7 +273,7 @@ function createDiscordPayload(data, formType) {
 
 
 // ==========================================
-// ОТПРАВКА ОБНОВЛЕНИЯ В DISCORD
+// ОБНОВЛЕНИЕ СООБЩЕНИЯ DISCORD
 // ==========================================
 
 async function updateDiscordMessage(data, formType) {
@@ -353,7 +360,7 @@ async function setSyncStatus(docRef, status, errorMessage = null) {
 
 
 // ==========================================
-// ОТОБРАЖЕНИЕ СТАТУСА В КАРТОЧКЕ
+// ОТОБРАЖЕНИЕ СТАТУСА СИНХРОНИЗАЦИИ
 // ==========================================
 
 function getSyncStatusHTML(data, docId) {
@@ -367,7 +374,6 @@ function getSyncStatusHTML(data, docId) {
         ? escapeHtml(data.discordSyncError)
         : '';
 
-    // УСПЕШНАЯ СИНХРОНИЗАЦИЯ
 
     if (status === "synced" && hasMessageId) {
 
@@ -378,7 +384,6 @@ function getSyncStatusHTML(data, docId) {
         `;
     }
 
-    // ОЖИДАНИЕ СИНХРОНИЗАЦИИ
 
     if (status === "pending") {
 
@@ -404,7 +409,6 @@ function getSyncStatusHTML(data, docId) {
         `;
     }
 
-    // ОШИБКА СИНХРОНИЗАЦИИ
 
     if (status === "failed") {
 
@@ -428,13 +432,12 @@ function getSyncStatusHTML(data, docId) {
                 </button>
             ` : `
                 <p style="color: #f59e0b; font-size: 12px;">
-                    ID сообщения Discord отсутствует. Автоматическое обновление сообщения невозможно.
+                    ID сообщения Discord отсутствует. Повторная синхронизация пока невозможна.
                 </p>
             `}
         `;
     }
 
-    // ОТСУТСТВУЕТ ID СООБЩЕНИЯ
 
     if (!hasMessageId) {
 
@@ -473,10 +476,10 @@ auth.onAuthStateChanged((user) => {
 
 
 // ==========================================
-// ЗАГРУЗКА РАПОРТОВ
+// ЗАГРУЗКА АКТИВНЫХ РАПОРТОВ
 // ==========================================
 
-async function loadReports(user) {
+async function loadReports(user, showLoading = true) {
 
     const lists = [
         rankChangeList,
@@ -485,16 +488,32 @@ async function loadReports(user) {
         theoryList
     ];
 
-    lists.forEach(list => {
-        list.innerHTML = 'Поиск...';
-    });
+    // Показываем загрузку только при первоначальном открытии
+    if (showLoading) {
+
+        lists.forEach(list => {
+            list.innerHTML = 'Поиск...';
+        });
+
+    }
 
     try {
 
+        // ВАЖНО:
+        // Firestore сразу отбирает только актуальные рапорты.
+        // Архивные документы остаются в базе и не загружаются.
+
         const snapshot = await db.collection('reports')
             .where('userId', '==', user.uid)
+            .where(
+                'expires_at',
+                '>',
+                firebase.firestore.Timestamp.now()
+            )
             .get();
 
+
+        // Подготавливаем списки
         lists.forEach(list => {
             list.innerHTML = '';
         });
@@ -504,11 +523,12 @@ async function loadReports(user) {
         let hasPract = false;
         let hasTheory = false;
 
+
         snapshot.forEach(doc => {
 
             const data = doc.data();
 
-            // Просроченные рапорты не удаляем
+            // Дополнительная проверка срока
             if (!isReportActive(data)) {
                 return;
             }
@@ -532,6 +552,9 @@ async function loadReports(user) {
                 </button>
             `;
 
+
+            // ЗАПРОС НА ПОВЫШЕНИЕ
+
             if (data.formType === "Запрос на повышение") {
 
                 hasPromo = true;
@@ -545,7 +568,12 @@ async function loadReports(user) {
 
                 promotionList.appendChild(card);
 
-            } else if (data.formType === "Практическая тренировка") {
+            }
+
+
+            // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
+
+            else if (data.formType === "Практическая тренировка") {
 
                 hasPract = true;
 
@@ -559,7 +587,12 @@ async function loadReports(user) {
 
                 practicalList.appendChild(card);
 
-            } else if (data.formType === "Теоретическая тренировка") {
+            }
+
+
+            // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
+
+            else if (data.formType === "Теоретическая тренировка") {
 
                 hasTheory = true;
 
@@ -573,7 +606,12 @@ async function loadReports(user) {
 
                 theoryList.appendChild(card);
 
-            } else {
+            }
+
+
+            // ИЗМЕНЕНИЕ ЗВАНИЯ
+
+            else {
 
                 hasRank = true;
 
@@ -589,6 +627,9 @@ async function loadReports(user) {
             }
 
         });
+
+
+        // Если список пуст
 
         if (!hasRank) {
             rankChangeList.innerHTML =
@@ -610,14 +651,16 @@ async function loadReports(user) {
                 '<p>У вас нет активных рапортов этого типа.</p>';
         }
 
+
     } catch (error) {
 
         console.error('Ошибка загрузки рапортов:', error);
 
         lists.forEach(list => {
             list.innerHTML =
-                '<p style="color:#ef4444;">Не удалось загрузить рапорты. Обновите страницу.</p>';
+                '<p style="color:#ef4444;">Не удалось загрузить рапорты. Проверьте подключение к базе данных.</p>';
         });
+
     }
 }
 
@@ -659,6 +702,7 @@ window.openModal = function(docId, data) {
     document.getElementById('editReportDate').value =
         data.reportDate || '';
 
+
     if (formType === "Запрос на повышение") {
 
         modalTitle.textContent =
@@ -669,7 +713,10 @@ window.openModal = function(docId, data) {
         document.getElementById('editRequestedRank').value =
             data.requestedRank || '';
 
-    } else if (
+    }
+
+
+    else if (
         formType === "Практическая тренировка" ||
         formType === "Теоретическая тренировка"
     ) {
@@ -698,7 +745,10 @@ window.openModal = function(docId, data) {
                 data.description || '';
         }
 
-    } else {
+    }
+
+
+    else if (formType === "Новый рапорт") {
 
         modalTitle.textContent = "Редактирование рапорта";
 
@@ -718,6 +768,13 @@ window.openModal = function(docId, data) {
 
         document.getElementById('editNewRank').value =
             data.newRank || '';
+    }
+
+
+    else {
+
+        throw new Error('Неизвестный тип рапорта: ' + formType);
+
     }
 
     document.getElementById('editModal').style.display = 'flex';
@@ -810,7 +867,8 @@ window.retryDiscordSync = async function(docId) {
             );
         }
 
-        await loadReports(user);
+        // Обновляем списки без надписи «Поиск...»
+        await loadReports(user, false);
 
     } catch (error) {
 
@@ -854,6 +912,7 @@ document.getElementById('editForm')
         return;
     }
 
+
     try {
 
         const docRef = db.collection('reports').doc(docId);
@@ -875,26 +934,38 @@ document.getElementById('editForm')
             requestedFormType ||
             "Новый рапорт";
 
+
+        // Проверка срока действия
+
         if (!isReportActive(currentData)) {
 
             closeModal();
 
-            await loadReports(user);
+            await loadReports(user, false);
 
             throw new Error(
                 'Срок редактирования рапорта истёк. Прошло более 3 дней.'
             );
         }
 
+
+        // Проверка типа формы
+
         if (requestedFormType !== formType) {
+
             throw new Error(
                 'Тип рапорта изменился. Закройте окно и откройте его заново.'
             );
         }
 
+
+        // Подготовка данных
+
         const updatedData = {
+
             reporting:
                 document.getElementById('editReporting').value.trim()
+
         };
 
 
@@ -961,12 +1032,16 @@ document.getElementById('editForm')
             updatedData.reportDate =
                 document.getElementById('editReportDate').value;
 
-        } else {
+        }
+
+        else {
 
             throw new Error('Неизвестный тип рапорта: ' + formType);
 
         }
 
+
+        // Объединяем старые и новые данные
 
         const mergedData = {
             ...currentData,
@@ -1030,7 +1105,8 @@ document.getElementById('editForm')
 
         closeModal();
 
-        await loadReports(user);
+        // Обновляем карточки без полной надписи загрузки
+        loadReports(user, false);
 
     } catch (error) {
 
