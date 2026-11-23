@@ -11,9 +11,9 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const DISCORD_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/report';
-const PROMOTION_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/promotion';
-const TRAINING_WEBHOOK_URL = 'https://erk-proxy.Kaktys.workers.dev/training';
+const DISCORD_WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev/';
+const PROMOTION_WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev/';
+const TRAINING_WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev/';
 
 const rankChangeList = document.getElementById('rankChangeList');
 const promotionList = document.getElementById('promotionList');
