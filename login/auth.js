@@ -1,4 +1,3 @@
-const db = firebase.firestore();
 const firebaseConfig = {
   apiKey: "AIzaSyAOOP79OWQn_RjiI5bFk28a_At6jJ9o6qU",
   authDomain: "raportovanie-41.firebaseapp.com",
@@ -10,6 +9,8 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
+const db = firebase.firestore(); // ВАЖНО: добавили базу данных для создания профиля
+
 let isLoginMode = true; 
 
 document.getElementById('toggleAuthBtn').addEventListener('click', () => {
@@ -33,26 +34,26 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     statusDiv.className = 'form-status';
 
     try {
-      if (isLoginMode) {
+        if (isLoginMode) {
+            // ВХОД
             await auth.signInWithEmailAndPassword(fakeEmail, password);
         } else {
-            // Создаем аккаунт и сразу добавляем его в базу с 0 уровнем
+            // РЕГИСТРАЦИЯ
             const userCredential = await auth.createUserWithEmailAndPassword(fakeEmail, password);
             const user = userCredential.user;
             
-            // Создаем запись в коллекции users
-            await firebase.firestore().collection('users').doc(user.uid).set({
+            // Создаем запись в базе данных users с начальным уровнем 0
+            await db.collection('users').doc(user.uid).set({
                 soldierNumber: number,
-                level: 0, // Начальный уровень
-                rank: "Рядовой-рекрут", // Базовое звание
+                level: 0, 
+                rank: "Рядовой-рекрут", 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         }
         window.location.href = '../dashboard/index.html';
-        }
-        window.location.href = '../dashboard/index.html';
+
     } catch (error) {
-        // ИСПРАВЛЕНО: Добавлена проверка на новую ошибку Firebase
+        // ОБРАБОТКА ОШИБОК
         if (error.code === 'auth/invalid-login-credentials' || error.code === 'auth/invalid-credential') {
             statusDiv.textContent = 'Данного пользователя нет в базе данных (или введен неверный пароль).';
         } 
