@@ -29,7 +29,7 @@ const theoryList = document.getElementById('theoryList');
 
 
 // ==========================================
-// ВЫБОР WEBHOOK ПО ТИПУ РАПОРТА
+// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 // ==========================================
 
 function getWebhookUrl(formType) {
@@ -49,10 +49,6 @@ function getWebhookUrl(formType) {
 }
 
 
-// ==========================================
-// ПРОВЕРКА СРОКА ДЕЙСТВИЯ РАПОРТА
-// ==========================================
-
 function isReportActive(data) {
 
     if (
@@ -63,6 +59,27 @@ function isReportActive(data) {
     }
 
     return data.expires_at.toDate().getTime() > Date.now();
+}
+
+
+// ==========================================
+// ЭКРАНИРОВАНИЕ ТЕКСТА ОШИБКИ
+// ==========================================
+
+function escapeHtml(value) {
+
+    return String(value || '').replace(/[&<>"']/g, character => {
+
+        const entities = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+
+        return entities[character];
+    });
 }
 
 
@@ -78,7 +95,6 @@ function createDiscordPayload(data, formType) {
     let description = "";
     let fields = [];
 
-    // Сохраняем первоначальное время создания рапорта
     const timestamp =
         data.createdAt &&
         typeof data.createdAt.toDate === 'function'
@@ -86,9 +102,7 @@ function createDiscordPayload(data, formType) {
             : new Date().toISOString();
 
 
-    // ==========================================
     // РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
-    // ==========================================
 
     if (formType === "Новый рапорт") {
 
@@ -99,7 +113,7 @@ function createDiscordPayload(data, formType) {
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting}\``,
+                value: `\`${data.reporting}\`,
                 inline: false
             },
             {
@@ -131,10 +145,7 @@ function createDiscordPayload(data, formType) {
 
     }
 
-
-    // ==========================================
     // ЗАПРОС НА ПОВЫШЕНИЕ
-    // ==========================================
 
     else if (formType === "Запрос на повышение") {
 
@@ -155,10 +166,7 @@ function createDiscordPayload(data, formType) {
 
     }
 
-
-    // ==========================================
     // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
-    // ==========================================
 
     else if (formType === "Практическая тренировка") {
 
@@ -199,10 +207,7 @@ function createDiscordPayload(data, formType) {
 
     }
 
-
-    // ==========================================
     // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
-    // ==========================================
 
     else if (formType === "Теоретическая тренировка") {
 
@@ -319,6 +324,7 @@ async function setSyncStatus(docRef, status, errorMessage = null) {
 
     const update = {
         discordSyncStatus: status,
+
         discordSyncUpdatedAt:
             firebase.firestore.FieldValue.serverTimestamp()
     };
@@ -357,6 +363,12 @@ function getSyncStatusHTML(data, docId) {
     const status = data.discordSyncStatus ||
         (hasMessageId ? "synced" : "missing");
 
+    const errorText = data.discordSyncError
+        ? escapeHtml(data.discordSyncError)
+        : '';
+
+    // УСПЕШНАЯ СИНХРОНИЗАЦИЯ
+
     if (status === "synced" && hasMessageId) {
 
         return `
@@ -366,35 +378,63 @@ function getSyncStatusHTML(data, docId) {
         `;
     }
 
-    if (status === "pending" && hasMessageId) {
+    // ОЖИДАНИЕ СИНХРОНИЗАЦИИ
+
+    if (status === "pending") {
 
         return `
             <p style="color: #f59e0b; font-size: 13px;">
                 ● Ожидается синхронизация Discord
             </p>
-            <button
-                class="btn-submit"
-                style="margin-top: 5px; padding: 8px 15px; font-size: 13px;"
-                onclick="retryDiscordSync('${docId}')">
-                ПОВТОРИТЬ СИНХРОНИЗАЦИЮ
-            </button>
+
+            ${errorText ? `
+                <p style="color: #9ca3af; font-size: 12px;">
+                    Причина: ${errorText}
+                </p>
+            ` : ''}
+
+            ${hasMessageId ? `
+                <button
+                    class="btn-submit"
+                    style="margin-top: 5px; padding: 8px 15px; font-size: 13px;"
+                    onclick="retryDiscordSync('${docId}')">
+                    ПОВТОРИТЬ СИНХРОНИЗАЦИЮ
+                </button>
+            ` : ''}
         `;
     }
 
-    if (status === "failed" && hasMessageId) {
+    // ОШИБКА СИНХРОНИЗАЦИИ
+
+    if (status === "failed") {
 
         return `
             <p style="color: #ef4444; font-size: 13px;">
                 ● Ошибка синхронизации Discord
             </p>
-            <button
-                class="btn-submit"
-                style="margin-top: 5px; padding: 8px 15px; font-size: 13px;"
-                onclick="retryDiscordSync('${docId}')">
-                ПОВТОРИТЬ СИНХРОНИЗАЦИЮ
-            </button>
+
+            ${errorText ? `
+                <p style="color: #ef4444; font-size: 12px; overflow-wrap: anywhere;">
+                    Причина: ${errorText}
+                </p>
+            ` : ''}
+
+            ${hasMessageId ? `
+                <button
+                    class="btn-submit"
+                    style="margin-top: 5px; padding: 8px 15px; font-size: 13px;"
+                    onclick="retryDiscordSync('${docId}')">
+                    ПОВТОРИТЬ СИНХРОНИЗАЦИЮ
+                </button>
+            ` : `
+                <p style="color: #f59e0b; font-size: 12px;">
+                    ID сообщения Discord отсутствует. Автоматическое обновление сообщения невозможно.
+                </p>
+            `}
         `;
     }
+
+    // ОТСУТСТВУЕТ ID СООБЩЕНИЯ
 
     if (!hasMessageId) {
 
@@ -468,8 +508,7 @@ async function loadReports(user) {
 
             const data = doc.data();
 
-            // Просроченные рапорты не удаляем,
-            // а просто скрываем из личного кабинета.
+            // Просроченные рапорты не удаляем
             if (!isReportActive(data)) {
                 return;
             }
@@ -819,7 +858,6 @@ document.getElementById('editForm')
 
         const docRef = db.collection('reports').doc(docId);
 
-        // Получаем актуальный документ
         const currentDoc = await docRef.get();
 
         if (!currentDoc.exists) {
@@ -828,18 +866,15 @@ document.getElementById('editForm')
 
         const currentData = currentDoc.data();
 
-        // Проверяем владельца рапорта
         if (currentData.userId !== user.uid) {
             throw new Error('Нет доступа к этому рапорту.');
         }
 
-        // Определяем тип формы
         const formType =
             currentData.formType ||
             requestedFormType ||
             "Новый рапорт";
 
-        // Проверяем срок действия
         if (!isReportActive(currentData)) {
 
             closeModal();
@@ -851,23 +886,20 @@ document.getElementById('editForm')
             );
         }
 
-        // Проверяем тип формы
         if (requestedFormType !== formType) {
             throw new Error(
                 'Тип рапорта изменился. Закройте окно и откройте его заново.'
             );
         }
 
-        // Подготавливаем изменённые данные
         const updatedData = {
-
             reporting:
                 document.getElementById('editReporting').value.trim()
-
         };
 
 
         // ЗАПРОС НА ПОВЫШЕНИЕ
+
         if (formType === "Запрос на повышение") {
 
             updatedData.requestedRank =
@@ -877,6 +909,7 @@ document.getElementById('editForm')
 
 
         // ТРЕНИРОВКИ
+
         else if (
             formType === "Практическая тренировка" ||
             formType === "Теоретическая тренировка"
@@ -907,6 +940,7 @@ document.getElementById('editForm')
 
 
         // ИЗМЕНЕНИЕ ЗВАНИЯ
+
         else if (formType === "Новый рапорт") {
 
             updatedData.issuedBy =
@@ -934,15 +968,13 @@ document.getElementById('editForm')
         }
 
 
-        // Объединяем старые и новые данные
         const mergedData = {
             ...currentData,
             ...updatedData
         };
 
 
-        // Сначала сохраняем изменения в Firestore
-        // DiscordSyncStatus показывает, что нужна синхронизация
+        // Сохраняем изменения в Firestore
 
         await docRef.update({
 
@@ -959,12 +991,12 @@ document.getElementById('editForm')
         });
 
 
-        // Отправляем обновлённое сообщение в Discord
+        // Обновляем Discord
+
         try {
 
             await updateDiscordMessage(mergedData, formType);
 
-            // Синхронизация успешна
             await setSyncStatus(docRef, "synced");
 
             alert(
@@ -973,7 +1005,6 @@ document.getElementById('editForm')
 
         } catch (syncError) {
 
-            // Сохраняем ошибку синхронизации
             try {
 
                 await setSyncStatus(
@@ -993,7 +1024,7 @@ document.getElementById('editForm')
             alert(
                 'Изменения сохранены в Firestore, но Discord не обновился.\n\n' +
                 syncError.message +
-                '\n\nВ личном кабинете появилась возможность повторной синхронизации.'
+                '\n\nВ личном кабинете будет показана причина ошибки и возможность повторной синхронизации, если ID сообщения известен.'
             );
         }
 
