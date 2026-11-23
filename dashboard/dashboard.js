@@ -9,48 +9,11 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
-const db = firebase.firestore();
 
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged((user) => {
     if (user) {
-        // 1. Показываем номер бойца
         const soldierNumber = user.email.split('@')[0];
         document.getElementById('profileNumber').textContent = `Боец № ${soldierNumber}`;
-
-        // 2. Получаем профиль из Firestore, чтобы узнать уровень
-        try {
-            const doc = await db.collection('users').doc(user.uid).get();
-            
-            // Если профиля нет (старый аккаунт), считаем что уровень 0
-            let userLevel = 0;
-            if (doc.exists) {
-                userLevel = doc.data().level || 0;
-            }
-            
-            document.getElementById('profileLevel').textContent = userLevel;
-
-            // 3. Прячем формы, которые недоступны
-            const allForms = document.querySelectorAll('#formsContainer > [data-require-level]');
-            
-            allForms.forEach(formElement => {
-                const requiredLevel = parseInt(formElement.getAttribute('data-require-level'));
-                
-                // Если требуемый уровень больше, чем у бойца — скрываем элемент
-                if (requiredLevel > userLevel) {
-                    formElement.style.display = 'none';
-                    
-                    // Если это кнопка тренировок, прячем и подменю
-                    if(formElement.getAttribute('onclick') === 'toggleTrainingMenu()') {
-                        document.getElementById('trainingSubMenu').style.display = 'none';
-                    }
-                }
-            });
-
-        } catch (error) {
-            console.error("Ошибка загрузки профиля:", error);
-            document.getElementById('profileLevel').textContent = "Ошибка";
-        }
-
     } else {
         setTimeout(() => {
             if (!auth.currentUser) window.location.href = '../login/login.html';
@@ -58,7 +21,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// Управление модальным окном
+// Управление модальным окном выбора формы
 window.openFormModal = function() {
     document.getElementById('formModal').style.display = 'flex';
 }
