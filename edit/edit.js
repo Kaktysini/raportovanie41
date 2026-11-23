@@ -67,159 +67,195 @@ function isReportActive(data) {
 
 
 // ==========================================
-// СОЗДАНИЕ DISCORD EMBED
+// ФОРМИРОВАНИЕ DISCORD EMBED
 // ==========================================
 
 function createDiscordPayload(data, formType) {
 
+    const COLOR = 3096367;
+
     let title = "";
+    let description = "";
     let fields = [];
 
-    // ЗАПРОС НА ПОВЫШЕНИЕ
-    if (formType === "Запрос на повышение") {
+    // Сохраняем первоначальное время создания рапорта
+    const timestamp =
+        data.createdAt &&
+        typeof data.createdAt.toDate === 'function'
+            ? data.createdAt.toDate().toISOString()
+            : new Date().toISOString();
 
-        title = "Запрос на повышение (ИЗМЕНЕНО)";
 
-        fields = [
-            {
-                name: "Докладывает:",
-                value: `\`${data.reporting || "Не указано"}\``,
-                inline: false
-            },
-            {
-                name: "Запрос:",
-                value: data.requestedRank || "Не указано",
-                inline: false
-            }
-        ];
-
-    }
-
-    // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
-    else if (formType === "Практическая тренировка") {
-
-        title = "Практическая тренировка (ИЗМЕНЕНО)";
-
-        fields = [
-            {
-                name: "Докладывает:",
-                value: `\`${data.reporting || "Не указано"}\``,
-                inline: false
-            },
-            {
-                name: "Тренировка:",
-                value: `**${data.trainingName || "Не указано"}**`,
-                inline: false
-            },
-            {
-                name: "Место проведения:",
-                value: data.location || "Не указано",
-                inline: false
-            },
-            {
-                name: "Состав:",
-                value: `\`\`\`\n${data.participants || "Не указано"}\n\`\`\``,
-                inline: false
-            },
-            {
-                name: "Описание:",
-                value: data.description || "Не указано",
-                inline: false
-            },
-            {
-                name: "Примечание:",
-                value: data.notes || "Нет",
-                inline: false
-            },
-            {
-                name: "Дата:",
-                value: data.reportDate || "Не указана",
-                inline: false
-            }
-        ];
-
-    }
-
-    // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
-    else if (formType === "Теоретическая тренировка") {
-
-        title = "Теоретическая тренировка (ИЗМЕНЕНО)";
-
-        fields = [
-            {
-                name: "Докладывает:",
-                value: `\`${data.reporting || "Не указано"}\``,
-                inline: false
-            },
-            {
-                name: "Название:",
-                value: `**${data.trainingName || "Не указано"}**`,
-                inline: false
-            },
-            {
-                name: "Оценки состава:",
-                value: `\`\`\`\n${data.participants || "Не указано"}\n\`\`\``,
-                inline: false
-            },
-            {
-                name: "Примечание:",
-                value: data.notes || "Нет",
-                inline: false
-            },
-            {
-                name: "Дата:",
-                value: data.reportDate || "Не указана",
-                inline: false
-            }
-        ];
-
-    }
-
+    // ==========================================
     // РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
-    else {
+    // ==========================================
 
-        title = "📝 РАПОРТ (Отредактировано бойцом)";
+    if (formType === "Новый рапорт") {
+
+        title = "📝 Новый рапорт о изменении звания.";
+
+        description = "📌 **Основные данные**";
 
         fields = [
             {
                 name: "Докладывает:",
-                value: `\`${data.reporting || "Не указано"}\``,
+                value: `\`${data.reporting}\``,
                 inline: false
             },
             {
                 name: "Кто выдал форму:",
-                value: `\`${data.issuedBy || "Не указано"}\``,
+                value: `\`${data.issuedBy}\``,
                 inline: false
             },
             {
                 name: "Н | П бойца:",
-                value: data.soldierInfo || "Не указано",
+                value: `${data.soldierInfo}`,
                 inline: false
             },
             {
                 name: "Изменение звания:",
-                value: `~~${data.oldRank || "Не указано"}~~ ➔ **${data.newRank || "Не указано"}**`,
+                value: `~~${data.oldRank}~~ ➔ **${data.newRank}**`,
                 inline: false
             },
             {
                 name: "SteamID:",
-                value: `\`${data.steamId || "Не указано"}\``,
+                value: `\`${data.steamId}\``,
                 inline: false
             },
             {
                 name: "Дата рапорта:",
-                value: data.reportDate || "Не указана",
+                value: `${data.reportDate}`,
                 inline: false
             }
         ];
+
+    }
+
+
+    // ==========================================
+    // ЗАПРОС НА ПОВЫШЕНИЕ
+    // ==========================================
+
+    else if (formType === "Запрос на повышение") {
+
+        title = "Форма рапорта запроса на проверку готовности к повышению";
+
+        fields = [
+            {
+                name: "Докладывает:",
+                value: `\`${data.reporting}\``,
+                inline: false
+            },
+            {
+                name: "Запрашиваю проверку на повышение в звании",
+                value: `**${data.requestedRank}**`,
+                inline: false
+            }
+        ];
+
+    }
+
+
+    // ==========================================
+    // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
+    // ==========================================
+
+    else if (formType === "Практическая тренировка") {
+
+        title = "Форма рапорта о тренировках";
+
+        fields = [
+            {
+                name: "Докладывает:",
+                value: `\`${data.reporting}\``,
+                inline: false
+            },
+            {
+                name: "Тренировка:",
+                value: `**${data.trainingName}** (${data.location})`,
+                inline: false
+            },
+            {
+                name: "Состав:",
+                value: `\`\`\`\n${data.participants}\n\`\`\``,
+                inline: false
+            },
+            {
+                name: "Описание:",
+                value: data.description,
+                inline: false
+            },
+            {
+                name: "Примечание:",
+                value: data.notes || "Нет",
+                inline: false
+            },
+            {
+                name: "Дата:",
+                value: data.reportDate,
+                inline: false
+            }
+        ];
+
+    }
+
+
+    // ==========================================
+    // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
+    // ==========================================
+
+    else if (formType === "Теоретическая тренировка") {
+
+        title = "Форма рапорта о Теоретической тренировке";
+
+        fields = [
+            {
+                name: "Докладывает:",
+                value: `\`${data.reporting}\``,
+                inline: false
+            },
+            {
+                name: "Название:",
+                value: `**${data.trainingName}**`,
+                inline: false
+            },
+            {
+                name: "Оценки состава:",
+                value: `\`\`\`\n${data.participants}\n\`\`\``,
+                inline: false
+            },
+            {
+                name: "Примечание:",
+                value: data.notes || "Нет",
+                inline: false
+            },
+            {
+                name: "Дата:",
+                value: data.reportDate,
+                inline: false
+            }
+        ];
+
+    }
+
+    else {
+        throw new Error("Неизвестный тип рапорта: " + formType);
+    }
+
+
+    const embed = {
+        title: title,
+        color: COLOR,
+        fields: fields,
+        timestamp: timestamp
+    };
+
+    if (description) {
+        embed.description = description;
     }
 
     return {
-        embeds: [{
-            title: title,
-            color: 9109504,
-            fields: fields
-        }]
+        embeds: [embed]
     };
 }
 
@@ -265,14 +301,13 @@ async function updateDiscordMessage(data, formType) {
             const result = JSON.parse(responseText);
             errorDetails = result.message || result.error || responseText;
         } catch (error) {
-            // Ответ Discord может быть не в формате JSON
+            // Ответ может быть не в формате JSON
         }
 
         throw new Error(
             `HTTP ${response.status}: ${errorDetails || "Ошибка Discord"}`
         );
     }
-
 }
 
 
@@ -312,7 +347,7 @@ async function setSyncStatus(docRef, status, errorMessage = null) {
 
 
 // ==========================================
-// ИНФОРМАЦИЯ О СТАТУСЕ В КАРТОЧКЕ
+// ОТОБРАЖЕНИЕ СТАТУСА В КАРТОЧКЕ
 // ==========================================
 
 function getSyncStatusHTML(data, docId) {
@@ -433,8 +468,8 @@ async function loadReports(user) {
 
             const data = doc.data();
 
-            // Просроченные записи просто скрываем.
-            // Удалять их из Firestore запрещено.
+            // Просроченные рапорты не удаляем,
+            // а просто скрываем из личного кабинета.
             if (!isReportActive(data)) {
                 return;
             }
@@ -558,6 +593,7 @@ window.openModal = function(docId, data) {
 
     document.getElementById('editDocId').value = docId;
     document.getElementById('editFormType').value = formType;
+
     document.getElementById('editReporting').value =
         data.reporting || '';
 
@@ -650,7 +686,7 @@ window.openModal = function(docId, data) {
 
 
 // ==========================================
-// ЗАКРЫТИЕ ОКНА РЕДАКТИРОВАНИЯ
+// ЗАКРЫТИЕ ОКНА
 // ==========================================
 
 window.closeModal = function() {
@@ -689,9 +725,7 @@ window.retryDiscordSync = async function(docId) {
         }
 
         if (!isReportActive(data)) {
-            throw new Error(
-                'Срок редактирования рапорта истёк.'
-            );
+            throw new Error('Срок редактирования рапорта истёк.');
         }
 
         if (!data.discordMessageId) {
@@ -702,22 +736,18 @@ window.retryDiscordSync = async function(docId) {
 
         const formType = data.formType || "Новый рапорт";
 
-        // Ставим статус ожидания
         await setSyncStatus(docRef, "pending");
 
         try {
 
-            // Отправляем актуальные данные в исходное сообщение
             await updateDiscordMessage(data, formType);
 
-            // Discord успешно обновлён
             await setSyncStatus(docRef, "synced");
 
             alert('Синхронизация с Discord успешно завершена!');
 
         } catch (syncError) {
 
-            // Сохраняем ошибку для последующей попытки
             try {
 
                 await setSyncStatus(
@@ -803,9 +833,11 @@ document.getElementById('editForm')
             throw new Error('Нет доступа к этому рапорту.');
         }
 
-        // Определяем действительный тип формы
+        // Определяем тип формы
         const formType =
-            currentData.formType || requestedFormType || "Новый рапорт";
+            currentData.formType ||
+            requestedFormType ||
+            "Новый рапорт";
 
         // Проверяем срок действия
         if (!isReportActive(currentData)) {
@@ -819,7 +851,7 @@ document.getElementById('editForm')
             );
         }
 
-        // Проверяем, что тип формы не изменился
+        // Проверяем тип формы
         if (requestedFormType !== formType) {
             throw new Error(
                 'Тип рапорта изменился. Закройте окно и откройте его заново.'
@@ -828,9 +860,12 @@ document.getElementById('editForm')
 
         // Подготавливаем изменённые данные
         const updatedData = {
+
             reporting:
                 document.getElementById('editReporting').value.trim()
+
         };
+
 
         // ЗАПРОС НА ПОВЫШЕНИЕ
         if (formType === "Запрос на повышение") {
@@ -839,6 +874,7 @@ document.getElementById('editForm')
                 document.getElementById('editRequestedRank').value.trim();
 
         }
+
 
         // ТРЕНИРОВКИ
         else if (
@@ -869,8 +905,9 @@ document.getElementById('editForm')
 
         }
 
+
         // ИЗМЕНЕНИЕ ЗВАНИЯ
-        else {
+        else if (formType === "Новый рапорт") {
 
             updatedData.issuedBy =
                 document.getElementById('editIssuedBy').value.trim();
@@ -889,31 +926,45 @@ document.getElementById('editForm')
 
             updatedData.reportDate =
                 document.getElementById('editReportDate').value;
+
+        } else {
+
+            throw new Error('Неизвестный тип рапорта: ' + formType);
+
         }
 
-        // Объединяем сохранённые и новые данные
+
+        // Объединяем старые и новые данные
         const mergedData = {
             ...currentData,
             ...updatedData
         };
 
-        // Сначала фиксируем изменения в Firestore
-        // и ставим статус ожидания синхронизации
+
+        // Сначала сохраняем изменения в Firestore
+        // DiscordSyncStatus показывает, что нужна синхронизация
+
         await docRef.update({
+
             ...updatedData,
+
             discordSyncStatus: "pending",
+
             discordSyncError:
                 firebase.firestore.FieldValue.delete(),
+
             discordSyncUpdatedAt:
                 firebase.firestore.FieldValue.serverTimestamp()
+
         });
 
+
+        // Отправляем обновлённое сообщение в Discord
         try {
 
-            // Отправляем изменения в Discord
             await updateDiscordMessage(mergedData, formType);
 
-            // Отмечаем успешную синхронизацию
+            // Синхронизация успешна
             await setSyncStatus(docRef, "synced");
 
             alert(
@@ -922,7 +973,7 @@ document.getElementById('editForm')
 
         } catch (syncError) {
 
-            // Сохраняем статус ошибки
+            // Сохраняем ошибку синхронизации
             try {
 
                 await setSyncStatus(
@@ -942,7 +993,7 @@ document.getElementById('editForm')
             alert(
                 'Изменения сохранены в Firestore, но Discord не обновился.\n\n' +
                 syncError.message +
-                '\n\nВ личном кабинете появилась кнопка повторной синхронизации.'
+                '\n\nВ личном кабинете появилась возможность повторной синхронизации.'
             );
         }
 
