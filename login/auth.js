@@ -1,3 +1,4 @@
+const db = firebase.firestore();
 const firebaseConfig = {
   apiKey: "AIzaSyAOOP79OWQn_RjiI5bFk28a_At6jJ9o6qU",
   authDomain: "raportovanie-41.firebaseapp.com",
@@ -32,10 +33,22 @@ document.getElementById('authForm').addEventListener('submit', async (e) => {
     statusDiv.className = 'form-status';
 
     try {
-        if (isLoginMode) {
+      if (isLoginMode) {
             await auth.signInWithEmailAndPassword(fakeEmail, password);
         } else {
-            await auth.createUserWithEmailAndPassword(fakeEmail, password);
+            // Создаем аккаунт и сразу добавляем его в базу с 0 уровнем
+            const userCredential = await auth.createUserWithEmailAndPassword(fakeEmail, password);
+            const user = userCredential.user;
+            
+            // Создаем запись в коллекции users
+            await firebase.firestore().collection('users').doc(user.uid).set({
+                soldierNumber: number,
+                level: 0, // Начальный уровень
+                rank: "Рядовой-рекрут", // Базовое звание
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        }
+        window.location.href = '../dashboard/index.html';
         }
         window.location.href = '../dashboard/index.html';
     } catch (error) {
