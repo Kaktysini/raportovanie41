@@ -386,8 +386,40 @@ else {
 }
 
     try {
-        const docRef = db.collection('reports').doc(docId);
-        await docRef.update(updatedData);
+    const docRef = db.collection('reports').doc(docId);
+
+    // Получаем актуальные данные рапорта из Firestore
+    const currentDoc = await docRef.get();
+
+    if (!currentDoc.exists) {
+        throw new Error('Рапорт не найден.');
+    }
+
+    const currentData = currentDoc.data();
+
+    // Проверяем наличие срока действия
+    if (
+        !currentData.expires_at ||
+        typeof currentData.expires_at.toDate !== 'function'
+    ) {
+        throw new Error('Не удалось определить срок действия рапорта.');
+    }
+
+    // Проверяем, не истекли ли 3 дня
+    if (currentData.expires_at.toDate().getTime() <= Date.now()) {
+        closeModal();
+
+        if (auth.currentUser) {
+            await loadReports(auth.currentUser);
+        }
+
+        throw new Error(
+            'Срок редактирования рапорта истёк. Прошло более 3 дней.'
+        );
+    }
+
+    // Срок ещё действует — сохраняем изменения
+    await docRef.update(updatedData);
         
         const docSnap = await docRef.get();
         const messageId = docSnap.data().discordMessageId;
