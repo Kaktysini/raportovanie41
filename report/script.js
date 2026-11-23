@@ -10,7 +10,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const DISCORD_WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev';
+const DISCORD_WEBHOOK_URL = 'https://erk-proxy.cotnow1000.workers.dev/report';
 
 auth.onAuthStateChanged((user) => {
     if (!user) {
