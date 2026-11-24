@@ -3,53 +3,145 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Рапорт о изменении звания | 41-й ЭРК</title>
+    <title>Рапорт об изменении звания | 41-й ЭРК</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+
     <header class="site-header">
         <div class="logo-container">
+
             <h1>41-Й ЭЛИТНЫЙ РАЗВЕДЫВАТЕЛЬНЫЙ КОРПУС</h1>
+
             <p>ПОРТАЛ СЛУЖЕБНЫХ РАПОРТОВ</p>
+
             <div style="margin-top: 10px;">
-                <!-- Оставили только главное меню и кнопку выхода -->
-                <a href="../dashboard/index.html" style="color: #4caf50; text-decoration: none; font-size: 14px; margin-right: 15px;">🏠 Главное меню</a>
-                <button id="logoutBtn" class="btn-logout">Выйти</button>
+
+                <a
+                    href="../dashboard/index.html"
+                    style="color: #4caf50; text-decoration: none; font-size: 14px; margin-right: 15px;"
+                >
+                    🏠 Главное меню
+                </a>
+
+                <button id="logoutBtn" class="btn-logout">
+                    Выйти
+                </button>
+
             </div>
+
         </div>
     </header>
 
+
     <main class="report-form-container">
+
         <div class="form-header">
+
             <h2>Новый рапорт об изменении звания</h2>
-            <p>Резервная система. Данные уходят напрямую в Канцелярию.</p>
+
+            <p>
+                Резервная система. Данные уходят напрямую в Канцелярию.
+            </p>
+
         </div>
 
+
         <form id="reportForm">
+
             <div class="form-grid">
-                <div class="form-group">
-                    <label for="reporting">Докладывает *</label>
-                    <input type="text" id="reporting" name="reporting" placeholder="Номер | Позывной | Звание" required>
+
+                <!-- ДОКЛАДЫВАЮЩИЙ И ВЫДАЮЩИЙ ФОРМУ -->
+
+                <div class="form-group full-width">
+
+                    <label for="reporting">
+                        Докладывает / выдаёт форму *
+                    </label>
+
+                    <input
+                        type="text"
+                        id="reporting"
+                        name="reporting"
+                        placeholder="Номер | Позывной | Звание"
+                        autocomplete="off"
+                        readonly
+                        required
+                    >
+
+                    <small style="color: #9ca3af;">
+                        Данные автоматически загружаются из профиля.
+                    </small>
+
                 </div>
 
-                <div class="form-group">
-                    <label for="issuedBy">Кто выдал форму *</label>
-                    <input type="text" id="issuedBy" name="issuedBy" placeholder="Номер | Позывной | Звание" required>
+
+                <!-- ДАННЫЕ БОЙЦА, КОТОРОМУ МЕНЯЮТ ЗВАНИЕ -->
+
+                <div class="form-group full-width">
+
+                    <label for="soldierInfo">
+                        Н | П бойца *
+                    </label>
+
+                    <input
+                        type="text"
+                        id="soldierInfo"
+                        name="soldierInfo"
+                        placeholder="Номер | Позывной бойца"
+                        autocomplete="off"
+                        required
+                    >
+
                 </div>
 
-                <div class="form-group">
-                    <label for="soldierInfo">Н | П бойца *</label>
-                    <input type="text" id="soldierInfo" name="soldierInfo" placeholder="Номер | Позывной" required>
+
+                <!-- STEAM ID: ТОЛЬКО ДЛЯ КАДЕТА -->
+
+                <div
+                    class="form-group full-width"
+                    id="steamIdGroup"
+                    style="display: none;"
+                >
+
+                    <label for="steamId">
+                        SteamID *
+                    </label>
+
+                    <input
+                        type="text"
+                        id="steamId"
+                        name="steamId"
+                        placeholder="765611980xxxxxxxx"
+                        autocomplete="off"
+                        disabled
+                    >
+
+                    <small style="color: #9ca3af;">
+                        SteamID требуется только при повышении с кадета.
+                    </small>
+
                 </div>
 
-                <div class="form-group">
-                    <label for="steamId">SteamID *</label>
-                    <input type="text" id="steamId" name="steamId" placeholder="765611980xxxxxxxx" required>
-                </div>
+
+                <!-- СТАРОЕ ЗВАНИЕ -->
 
                 <div class="form-group">
-                    <label for="oldRank">Старое звание *</label>
-                    <select id="oldRank" name="oldRank" required>
+
+                    <label for="oldRank">
+                        Старое звание *
+                    </label>
+
+                    <select
+                        id="oldRank"
+                        name="oldRank"
+                        required
+                    >
+
+                        <option value="" selected disabled>
+                            Выберите старое звание
+                        </option>
+
                         <option value="Маршал">Маршал</option>
                         <option value="Коммандер">Коммандер</option>
                         <option value="Командир первого класса">Командир первого класса</option>
@@ -64,7 +156,7 @@
                         <option value="Команд сержант-майор">Команд сержант-майор</option>
                         <option value="Сержант-майор">Сержант-майор</option>
                         <option value="Первый сержант">Первый сержант</option>
-                        <option value="Мастер сержант">Мастер сержант</option>
+                        <option value="Мастер-сержант">Мастер-сержант</option>
                         <option value="Сержант первого класса">Сержант первого класса</option>
                         <option value="Штаб-сержант">Штаб-сержант</option>
                         <option value="Сержант">Сержант</option>
@@ -73,13 +165,31 @@
                         <option value="Старший рядовой">Старший рядовой</option>
                         <option value="Рядовой">Рядовой</option>
                         <option value="Рядовой-рекрут">Рядовой-рекрут</option>
-                        <option value="Кадет" selected>Кадет</option>
+                        <option value="Кадет">Кадет</option>
+
                     </select>
+
                 </div>
 
+
+                <!-- НОВОЕ ЗВАНИЕ -->
+
                 <div class="form-group">
-                    <label for="newRank">Новое звание *</label>
-                    <select id="newRank" name="newRank" required>
+
+                    <label for="newRank">
+                        Новое звание *
+                    </label>
+
+                    <select
+                        id="newRank"
+                        name="newRank"
+                        required
+                    >
+
+                        <option value="" disabled>
+                            Выберите новое звание
+                        </option>
+
                         <option value="Маршал">Маршал</option>
                         <option value="Коммандер">Коммандер</option>
                         <option value="Командир первого класса">Командир первого класса</option>
@@ -94,7 +204,7 @@
                         <option value="Команд сержант-майор">Команд сержант-майор</option>
                         <option value="Сержант-майор">Сержант-майор</option>
                         <option value="Первый сержант">Первый сержант</option>
-                        <option value="Мастер сержант">Мастер сержант</option>
+                        <option value="Мастер-сержант">Мастер-сержант</option>
                         <option value="Сержант первого класса">Сержант первого класса</option>
                         <option value="Штаб-сержант">Штаб-сержант</option>
                         <option value="Сержант">Сержант</option>
@@ -102,29 +212,72 @@
                         <option value="Специалист">Специалист</option>
                         <option value="Старший рядовой">Старший рядовой</option>
                         <option value="Рядовой">Рядовой</option>
-                        <option value="Рядовой-рекрут" selected>Рядовой-рекрут</option>
+                        <option value="Рядовой-рекрут">Рядовой-рекрут</option>
                         <option value="Кадет">Кадет</option>
+
                     </select>
+
                 </div>
+
+
+                <!-- STEAM ID ВСТАВЛЯЕТСЯ ОТДЕЛЬНО ВЫШЕ ПРИ НЕОБХОДИМОСТИ -->
+
+
+                <!-- ДАТА РАПОРТА -->
 
                 <div class="form-group full-width">
-                    <label for="reportDate">Дата рапорта *</label>
-                    <input type="date" id="reportDate" name="reportDate" required>
+
+                    <label for="reportDate">
+                        Дата рапорта *
+                    </label>
+
+                    <input
+                        type="date"
+                        id="reportDate"
+                        name="reportDate"
+                        required
+                    >
+
                 </div>
+
             </div>
 
+
             <div class="form-actions">
-                <button type="submit" class="btn-submit">ОТПРАВИТЬ РАПОРТ</button>
-                <button type="reset" class="btn-reset">СБРОСИТЬ</button>
+
+                <button
+                    type="submit"
+                    class="btn-submit"
+                    disabled
+                >
+                    ОТПРАВИТЬ РАПОРТ
+                </button>
+
+                <button
+                    type="reset"
+                    class="btn-reset"
+                >
+                    СБРОСИТЬ
+                </button>
+
             </div>
-            
-            <div id="formStatus" class="form-status"></div>
+
+
+            <div
+                id="formStatus"
+                class="form-status"
+            ></div>
+
         </form>
+
     </main>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
     <script src="script.js"></script>
+
 </body>
 </html>
