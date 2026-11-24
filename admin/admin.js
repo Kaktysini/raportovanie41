@@ -1,4 +1,3 @@
-
 const firebaseConfig = {
     apiKey: "AIzaSyAOOP79OWQn_RjiI5bFk28a_At6jJ9o6qU",
     authDomain: "raportovanie-41.firebaseapp.com",
@@ -13,11 +12,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-
 // ==========================================
-// СПРАВОЧНИК ЗВАНИЙ И УРОВНЕЙ
-// 0–6 — обычные уровни, 7 — КМД.
-// Административные роли задаются отдельно.
+// СПРАВОЧНИК ЗВАНИЙ
 // ==========================================
 
 const RANK_GROUPS = [
@@ -102,9 +98,8 @@ RANK_GROUPS.forEach(group => {
     });
 });
 
-
 // ==========================================
-// СОСТОЯНИЕ ПАНЕЛИ
+// СОСТОЯНИЕ
 // ==========================================
 
 let currentUser = null;
@@ -112,30 +107,30 @@ let currentProfile = null;
 
 let allUsers = [];
 let pendingUsers = [];
+let pendingRankRequests = [];
 
+let firstPendingSnapshot = true;
+let firstRankSnapshot = true;
+
+let unsubscribePending = null;
+let unsubscribeRankRequests = null;
+let unsubscribeUsers = null;
 
 // ==========================================
 // ЭЛЕМЕНТЫ СТРАНИЦЫ
 // ==========================================
 
-const adminIdentity =
-    document.getElementById("adminIdentity");
+const adminIdentity = document.getElementById("adminIdentity");
+const adminMessage = document.getElementById("adminMessage");
 
-const adminMessage =
-    document.getElementById("adminMessage");
+const pendingList = document.getElementById("pendingList");
+const rankRequestsList = document.getElementById("rankRequestsList");
+const usersList = document.getElementById("usersList");
 
-const pendingList =
-    document.getElementById("pendingList");
+const pendingCount = document.getElementById("pendingCount");
+const rankRequestsCount = document.getElementById("rankRequestsCount");
 
-const usersList =
-    document.getElementById("usersList");
-
-const pendingCount =
-    document.getElementById("pendingCount");
-
-const usersSearch =
-    document.getElementById("usersSearch");
-
+const usersSearch = document.getElementById("usersSearch");
 
 // ==========================================
 // БЕЗОПАСНОЕ ОТОБРАЖЕНИЕ ТЕКСТА
@@ -145,18 +140,17 @@ function escapeHtml(value) {
 
     return String(value ?? "").replace(/[&<>"']/g, char => {
 
-        const entities = {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
+const entities = {
+            "&": "&",
+            "<": "<",
+            ">": ">",
+            '"': """,
+            "'": "'"
         };
 
-        return entities[char];
+return entities[char];
     });
 }
-
 
 // ==========================================
 // СООБЩЕНИЯ
@@ -166,72 +160,49 @@ function showMessage(message, isError = false) {
 
     adminMessage.textContent = message;
 
-    adminMessage.style.color = isError
+adminMessage.style.color = isError
         ? "#ff7777"
         : "#e5e7eb";
 }
 
-
 // ==========================================
-// ПРЕОБРАЗОВАНИЕ ЗВАНИЯ В УРОВЕНЬ
+// УРОВНИ ЗВАНИЙ
 // ==========================================
 
 function getLevelByRank(rank) {
-
-    if (!Object.prototype.hasOwnProperty.call(RANK_TO_LEVEL, rank)) {
-        return undefined;
-    }
-
-    return RANK_TO_LEVEL[rank];
+    return Object.prototype.hasOwnProperty.call(RANK_TO_LEVEL, rank)
+        ? RANK_TO_LEVEL[rank]
+        : undefined;
 }
-
 
 function getRankDescription(rank) {
 
-    if (!rank) {
+if (!rank) {
         return "Звание не назначено";
     }
 
     const level = getLevelByRank(rank);
 
-    if (level === undefined) {
+if (level === undefined) {
         return rank;
     }
 
-    if (level === 7) {
-        return `${rank} — КМД`;
-    }
-
-    return `${rank} — уровень ${level}`;
+if (level === 7) {
+return $DIL0 — КМД;
 }
 
-
-// ==========================================
-// СПИСОК ЗВАНИЙ ДЛЯ SELECT
-// ==========================================
+return $DIL0 — уровень $DIL1;
+}
 
 function buildRankOptions(selectedRank = "") {
 
-    let html = `
-        <option value="">Выберите звание</option>
-    `;
+let html = DIL0;
 
     RANK_GROUPS.forEach(group => {
 
         html += `
-            <optgroup label="${escapeHtml(group.label)}">
-        `;
 
-        group.ranks.forEach(rank => {
-
-            const selected =
-                rank === selectedRank ? "selected" : "";
-
-            html += `
-                <option value="${escapeHtml(rank)}" ${selected}>
-                    ${escapeHtml(rank)}
-                </option>
-            `;
+`;
 
         });
 
@@ -239,23 +210,21 @@ function buildRankOptions(selectedRank = "") {
 
     });
 
-    return html;
+return html;
 }
 
-
 // ==========================================
-// ПРЕОБРАЗОВАНИЕ ДАТЫ
+// ФОРМАТИРОВАНИЕ ДАТЫ
 // ==========================================
 
 function formatDate(timestamp) {
 
-    if (!timestamp || typeof timestamp.toDate !== "function") {
+if (!timestamp || typeof timestamp.toDate !== "function") {
         return "Дата неизвестна";
     }
 
-    return timestamp.toDate().toLocaleString("ru-RU");
+return timestamp.toDate().toLocaleString("ru-RU");
 }
-
 
 // ==========================================
 // СТАТУС ПОЛЬЗОВАТЕЛЯ
@@ -263,15 +232,14 @@ function formatDate(timestamp) {
 
 function getStatusLabel(status) {
 
-    const labels = {
+const labels = {
         pending: "Ожидает одобрения",
         approved: "Одобрен",
         rejected: "Отклонён"
     };
 
-    return labels[status] || "Неизвестный статус";
+return labels[status] || "Неизвестный статус";
 }
-
 
 // ==========================================
 // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
@@ -283,198 +251,310 @@ document.querySelectorAll(".admin-tab").forEach(button => {
 
         const tab = button.dataset.tab;
 
-        document.querySelectorAll(".admin-tab").forEach(item => {
+document.querySelectorAll(".admin-tab").forEach(item => {
             item.classList.remove("active");
         });
 
-        document.querySelectorAll(".admin-section").forEach(item => {
+document.querySelectorAll(".admin-section").forEach(item => {
             item.classList.remove("active");
         });
 
         button.classList.add("active");
 
-        if (tab === "pending") {
-            document.getElementById("pendingPanel")
-                .classList.add("active");
-        }
+const panel = document.getElementById(
+            tab === "pending"
+                ? "pendingPanel"
+                : tab === "rankRequests"
+                    ? "rankRequestsPanel"
+                    : "usersPanel"
+        );
 
-        if (tab === "users") {
-            document.getElementById("usersPanel")
-                .classList.add("active");
+if (panel) {
+            panel.classList.add("active");
         }
 
     });
 
 });
 
-
 // ==========================================
-// ЗАГРУЗКА ЗАЯВОК НА РЕГИСТРАЦИЮ
+// СОЗДАНИЕ УВЕДОМЛЕНИЯ БОЙЦУ
 // ==========================================
 
-async function loadPendingApplications() {
+function createUserNotification(
+    batch,
+    recipientUid,
+    type,
+    title,
+    message,
+    relatedId
+) {
 
-    pendingList.innerHTML = `
-        <div class="admin-empty">Загрузка заявок...</div>
-    `;
+const notificationRef =
+        db.collection("notifications").doc();
 
-    const snapshot = await db.collection("users")
-        .where("status", "==", "pending")
-        .get();
+    batch.set(notificationRef, {
 
-    pendingUsers = [];
+        recipientUid: recipientUid,
 
-    snapshot.forEach(doc => {
+        type: type,
 
-        pendingUsers.push({
-            uid: doc.id,
-            ...doc.data()
-        });
+        title: title,
+
+        message: message,
+
+        relatedId: relatedId || "",
+
+        read: false,
+
+createdAt:
+            firebase.firestore.FieldValue.serverTimestamp()
 
     });
 
-    pendingUsers.sort((a, b) =>
-        String(a.soldierNumber || "").localeCompare(
-            String(b.soldierNumber || ""),
-            "ru",
-            { numeric: true }
-        )
-    );
-
-    pendingCount.textContent = pendingUsers.length;
-
-    renderPendingApplications();
 }
 
+// ==========================================
+// ПОДПИСКА НА ЗАЯВКИ В РЕАЛЬНОМ ВРЕМЕНИ
+// ==========================================
+
+function startRealtimeListeners() {
+
+    // Заявки на регистрацию
+
+unsubscribePending = db.collection("users")
+        .where("status", "==", "pending")
+        .onSnapshot(snapshot => {
+
+pendingUsers = snapshot.docs.map(doc => ({
+                uid: doc.id,
+                ...doc.data()
+            }));
+
+pendingUsers.sort((a, b) =>
+                String(a.soldierNumber || "").localeCompare(
+                    String(b.soldierNumber || ""),
+                    "ru",
+                    { numeric: true }
+                )
+            );
+
+            pendingCount.textContent = pendingUsers.length;
+
+            renderPendingApplications();
+
+            if (!firstPendingSnapshot) {
+
+const added = snapshot.docChanges().filter(
+                    change => change.type === "added"
+                );
+
+if (added.length > 0) {
+showMessage(
+Поступила новая заявка на регистрацию. Новых заявок: $DIL0
+);
+}
+
+            }
+
+            firstPendingSnapshot = false;
+
+        }, error => {
+
+            console.error("Ошибка заявок на регистрацию:", error);
+
+showMessage(
+                "Не удалось получать заявки на регистрацию: " + error.message,
+                true
+            );
+
+        });
+
+    // Заявки на повышение
+
+unsubscribeRankRequests = db.collection("rankRequests")
+        .where("status", "==", "pending")
+        .onSnapshot(snapshot => {
+
+pendingRankRequests = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            pendingRankRequests.sort((a, b) => {
+
+const dateA = a.createdAt?.toDate?.().getTime() || 0;
+                const dateB = b.createdAt?.toDate?.().getTime() || 0;
+
+return dateB - dateA;
+            });
+
+rankRequestsCount.textContent =
+                pendingRankRequests.length;
+
+            renderRankRequests();
+
+            if (!firstRankSnapshot) {
+
+const added = snapshot.docChanges().filter(
+                    change => change.type === "added"
+                );
+
+if (added.length > 0) {
+showMessage(
+Поступил новый запрос на повышение. Новых запросов: $DIL0
+);
+}
+
+            }
+
+            firstRankSnapshot = false;
+
+        }, error => {
+
+            console.error("Ошибка запросов на повышение:", error);
+
+showMessage(
+                "Не удалось получать запросы на повышение: " + error.message,
+                true
+            );
+
+        });
+
+    // Все пользователи
+
+unsubscribeUsers = db.collection("users")
+        .onSnapshot(snapshot => {
+
+allUsers = snapshot.docs.map(doc => ({
+                uid: doc.id,
+                ...doc.data()
+            }));
+
+allUsers.sort((a, b) =>
+                String(a.soldierNumber || "").localeCompare(
+                    String(b.soldierNumber || ""),
+                    "ru",
+                    { numeric: true }
+                )
+            );
+
+            renderUsers();
+
+        }, error => {
+
+            console.error("Ошибка списка пользователей:", error);
+
+showMessage(
+                "Не удалось обновить список пользователей: " + error.message,
+                true
+            );
+
+        });
+
+}
 
 // ==========================================
-// ОТОБРАЖЕНИЕ ЗАЯВОК
+// ОТОБРАЖЕНИЕ ЗАЯВОК НА РЕГИСТРАЦИЮ
 // ==========================================
 
 function renderPendingApplications() {
 
     if (pendingUsers.length === 0) {
 
-        pendingList.innerHTML = `
-            <div class="admin-empty">
-                Новых заявок на регистрацию нет.
-            </div>
-        `;
+pendingList.innerHTML = `
 
-        return;
+`;
+
+return;
     }
 
     pendingList.innerHTML = pendingUsers.map(user => {
 
-        const uid = escapeHtml(user.uid);
+const uid = escapeHtml(user.uid);
         const number = escapeHtml(user.soldierNumber || "Не указан");
-        const createdAt = escapeHtml(formatDate(user.createdAt));
 
-        return `
-            <article class="admin-card" data-user-card="${uid}">
+return `
 
-                <div class="admin-card-header">
+`;
 
-                    <h3>Боец № ${number}</h3>
-
-                    <span class="admin-status">
-                        Ожидает одобрения
-                    </span>
-
-                </div>
-
-                <div class="admin-meta">
-                    <div>UID: ${uid}</div>
-                    <div>Дата регистрации: ${createdAt}</div>
-                </div>
-
-                <div class="admin-field">
-
-                    <label>Назначить звание:</label>
-
-                    <select
-                        class="admin-select"
-                        data-rank-select
-                    >
-                        ${buildRankOptions(user.rank || "")}
-                    </select>
-
-                    <div class="admin-small-note" data-level-preview>
-                        Выберите звание для определения уровня доступа.
-                    </div>
-
-                </div>
-
-                <div class="admin-actions">
-
-                    <button
-                        type="button"
-                        class="admin-button admin-approve"
-                        data-action="approve"
-                        data-uid="${uid}"
-                        disabled
-                    >
-                        ОДОБРИТЬ
-                    </button>
-
-                    <button
-                        type="button"
-                        class="admin-button admin-reject"
-                        data-action="reject"
-                        data-uid="${uid}"
-                    >
-                        ОТКЛОНИТЬ
-                    </button>
-
-                </div>
-
-            </article>
-        `;
-
-    }).join("");
+}).join("");
 }
 
+// ==========================================
+// ОТОБРАЖЕНИЕ ЗАПРОСОВ НА ПОВЫШЕНИЕ
+// ==========================================
+
+function renderRankRequests() {
+
+    if (pendingRankRequests.length === 0) {
+
+rankRequestsList.innerHTML = `
+
+`;
+
+return;
+    }
+
+    rankRequestsList.innerHTML = pendingRankRequests.map(request => {
+
+const id = escapeHtml(request.id);
+        const number = escapeHtml(request.soldierNumber || "Не указан");
+
+const currentRank = escapeHtml(request.currentRank);
+        const requestedRank = escapeHtml(request.requestedRank);
+
+const currentLevel = escapeHtml(request.currentAccessLevel);
+        const requestedLevel = escapeHtml(request.requestedLevel);
+
+return `
+
+`;
+
+}).join("");
+}
 
 // ==========================================
-// ОДОБРЕНИЕ ПОЛЬЗОВАТЕЛЯ
+// ОДОБРЕНИЕ РЕГИСТРАЦИИ
 // ==========================================
 
-async function approveUser(uid, button) {
+async function approveRegistration(uid, button) {
 
     const card = button.closest("[data-user-card]");
 
-    const rankSelect = card.querySelector("[data-rank-select]");
-
-    const rank = rankSelect.value;
-
-    if (!rank) {
-
-        showMessage(
-            "Перед одобрением необходимо назначить пользователю звание.",
-            true
-        );
-
-        return;
-    }
+    const rank = card.querySelector("[data-rank-select]").value;
 
     const accessLevel = getLevelByRank(rank);
 
-    if (!Number.isInteger(accessLevel)) {
+    if (!rank || !Number.isInteger(accessLevel)) {
 
-        showMessage("Не удалось определить уровень звания.", true);
+showMessage(
+            "Перед одобрением необходимо назначить корректное звание.",
+            true
+        );
 
+return;
+    }
+
+    const userRef = db.collection("users").doc(uid);
+
+    const userSnapshot = await userRef.get();
+
+if (!userSnapshot.exists) {
+        showMessage("Пользователь не найден.", true);
         return;
     }
 
-    const number = card.querySelector("h3").textContent;
+    const userData = userSnapshot.data();
 
-    const levelLabel = accessLevel === 7
-        ? "КМД"
-        : accessLevel;
+if (userData.status !== "pending") {
+        showMessage("Эта заявка уже обработана.", true);
+        return;
+    }
 
-    const confirmed = confirm(
-        `Одобрить регистрацию ${number}?\n\nЗвание: ${rank}\nУровень: ${levelLabel}`
-    );
+const confirmed = confirm(
+Одобрить регистрацию бойца № $DIL0?\n\nЗвание: $DIL1\nУровень: $DIL2
+);
 
     if (!confirmed) return;
 
@@ -482,7 +562,9 @@ async function approveUser(uid, button) {
 
     try {
 
-        await db.collection("users").doc(uid).update({
+        const batch = db.batch();
+
+        batch.update(userRef, {
 
             status: "approved",
 
@@ -490,44 +572,71 @@ async function approveUser(uid, button) {
 
             accessLevel: accessLevel,
 
-            approvedAt:
+approvedAt:
                 firebase.firestore.FieldValue.serverTimestamp(),
 
             approvedBy: currentUser.uid,
 
-            updatedAt:
+updatedAt:
                 firebase.firestore.FieldValue.serverTimestamp()
 
         });
 
-        showMessage("Пользователь успешно одобрен.");
+createUserNotification(
+batch,
+uid,
+"registration_approved",
+"Регистрация одобрена",
+Администрация одобрила вашу регистрацию. Назначено звание: $DIL0. Уровень доступа: $DIL1.,
+uid
+);
 
-        await loadAllData();
+        await batch.commit();
+
+showMessage(
+Регистрация бойца № $DIL0 одобрена.
+);
 
     } catch (error) {
 
-        console.error("Ошибка одобрения:", error);
+        console.error("Ошибка одобрения регистрации:", error);
 
-        showMessage(
-            "Не удалось одобрить пользователя: " + error.message,
+showMessage(
+            "Не удалось одобрить регистрацию: " + error.message,
             true
         );
 
         button.disabled = false;
 
     }
-}
 
+}
 
 // ==========================================
 // ОТКЛОНЕНИЕ РЕГИСТРАЦИИ
 // ==========================================
 
-async function rejectUser(uid, button) {
+async function rejectRegistration(uid, button) {
 
-    const confirmed = confirm(
-        "Вы действительно хотите отклонить эту регистрацию?"
-    );
+    const userRef = db.collection("users").doc(uid);
+
+    const userSnapshot = await userRef.get();
+
+if (!userSnapshot.exists) {
+        showMessage("Пользователь не найден.", true);
+        return;
+    }
+
+    const userData = userSnapshot.data();
+
+if (userData.status !== "pending") {
+        showMessage("Эта заявка уже обработана.", true);
+        return;
+    }
+
+const confirmed = confirm(
+Отклонить регистрацию бойца № $DIL0?
+);
 
     if (!confirmed) return;
 
@@ -535,29 +644,42 @@ async function rejectUser(uid, button) {
 
     try {
 
-        await db.collection("users").doc(uid).update({
+        const batch = db.batch();
+
+        batch.update(userRef, {
 
             status: "rejected",
 
-            rejectedAt:
+rejectedAt:
                 firebase.firestore.FieldValue.serverTimestamp(),
 
             rejectedBy: currentUser.uid,
 
-            updatedAt:
+updatedAt:
                 firebase.firestore.FieldValue.serverTimestamp()
 
         });
 
-        showMessage("Заявка отклонена.");
+createUserNotification(
+            batch,
+            uid,
+            "registration_rejected",
+            "Регистрация отклонена",
+            "Администрация отклонила вашу заявку на регистрацию. Обратитесь к администрации для уточнения причины.",
+            uid
+        );
 
-        await loadAllData();
+        await batch.commit();
+
+showMessage(
+Регистрация бойца № $DIL0 отклонена.
+);
 
     } catch (error) {
 
-        console.error("Ошибка отклонения:", error);
+        console.error("Ошибка отклонения регистрации:", error);
 
-        showMessage(
+showMessage(
             "Не удалось отклонить регистрацию: " + error.message,
             true
         );
@@ -565,56 +687,234 @@ async function rejectUser(uid, button) {
         button.disabled = false;
 
     }
+
 }
 
-
 // ==========================================
-// ЗАГРУЗКА ВСЕХ ПОЛЬЗОВАТЕЛЕЙ
+// ОДОБРЕНИЕ ЗАПРОСА НА ПОВЫШЕНИЕ
 // ==========================================
 
-async function loadUsers() {
+async function approveRankRequest(requestId, button) {
 
-    usersList.innerHTML = `
-        <div class="admin-empty">Загрузка пользователей...</div>
-    `;
+const requestRef =
+        db.collection("rankRequests").doc(requestId);
 
-    const snapshot = await db.collection("users").get();
+    const requestSnapshot = await requestRef.get();
 
-    allUsers = [];
+if (!requestSnapshot.exists) {
+        showMessage("Запрос на повышение не найден.", true);
+        return;
+    }
 
-    snapshot.forEach(doc => {
+    const request = requestSnapshot.data();
 
-        allUsers.push({
-            uid: doc.id,
-            ...doc.data()
+if (request.status !== "pending") {
+        showMessage("Этот запрос уже обработан.", true);
+        return;
+    }
+
+    const userRef = db.collection("users").doc(request.userId);
+
+    const userSnapshot = await userRef.get();
+
+if (!userSnapshot.exists) {
+        showMessage("Профиль бойца не найден.", true);
+        return;
+    }
+
+    const userProfile = userSnapshot.data();
+
+if (
+        userProfile.status !== "approved" ||
+        userProfile.role !== "user"
+    ) {
+        showMessage(
+            "Профиль бойца изменён или недоступен для повышения. Проверьте его вручную.",
+            true
+        );
+
+return;
+    }
+
+    const validLevel = getLevelByRank(request.requestedRank);
+
+if (
+        !Number.isInteger(validLevel) ||
+        validLevel !== request.requestedLevel
+    ) {
+        showMessage(
+            "Данные запрашиваемого звания не совпадают со справочником. Запрос не обработан.",
+            true
+        );
+
+return;
+    }
+
+const confirmed = confirm(
+Одобрить повышение бойца № $DIL0?\n\n +
+Старое звание: $DIL1\n +
+Новое звание: $DIL2\n +
+Новый уровень: $DIL3
+);
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+
+    try {
+
+        const batch = db.batch();
+
+// Меняем профиль бойца.
+        batch.update(userRef, {
+
+            rank: request.requestedRank,
+
+            accessLevel: validLevel,
+
+updatedAt:
+                firebase.firestore.FieldValue.serverTimestamp()
+
         });
 
-    });
+// Отмечаем запрос как одобренный.
+        batch.update(requestRef, {
 
-    allUsers.sort((a, b) =>
-        String(a.soldierNumber || "").localeCompare(
-            String(b.soldierNumber || ""),
-            "ru",
-            { numeric: true }
-        )
-    );
+            status: "approved",
 
-    renderUsers();
+decidedAt:
+                firebase.firestore.FieldValue.serverTimestamp(),
+
+            decidedBy: currentUser.uid
+
+        });
+
+// Отправляем персональное уведомление.
+createUserNotification(
+batch,
+request.userId,
+"rank_approved",
+"Запрос на повышение одобрен",
+Администрация одобрила ваш запрос. Новое звание: $DIL0. Новый уровень доступа: $DIL1.,
+requestId
+);
+
+        await batch.commit();
+
+showMessage(
+Боец № $DIL0 повышен до звания $DIL1.
+);
+
+    } catch (error) {
+
+        console.error("Ошибка одобрения повышения:", error);
+
+showMessage(
+            "Не удалось одобрить повышение: " + error.message,
+            true
+        );
+
+        button.disabled = false;
+
+    }
+
 }
 
+// ==========================================
+// ОТКЛОНЕНИЕ ЗАПРОСА НА ПОВЫШЕНИЕ
+// ==========================================
+
+async function rejectRankRequest(requestId, button) {
+
+const requestRef =
+        db.collection("rankRequests").doc(requestId);
+
+    const requestSnapshot = await requestRef.get();
+
+if (!requestSnapshot.exists) {
+        showMessage("Запрос не найден.", true);
+        return;
+    }
+
+    const request = requestSnapshot.data();
+
+if (request.status !== "pending") {
+        showMessage("Этот запрос уже обработан.", true);
+        return;
+    }
+
+const decisionNote = prompt(
+        "Укажите причину отказа бойцу:",
+        ""
+    );
+
+if (decisionNote === null) {
+        return;
+    }
+
+    button.disabled = true;
+
+    try {
+
+        const batch = db.batch();
+
+        batch.update(requestRef, {
+
+            status: "rejected",
+
+decidedAt:
+                firebase.firestore.FieldValue.serverTimestamp(),
+
+            decidedBy: currentUser.uid,
+
+            decisionNote: decisionNote.trim()
+
+        });
+
+createUserNotification(
+batch,
+request.userId,
+"rank_rejected",
+"Запрос на повышение отклонён",
+decisionNote.trim()
+? Администрация отклонила ваш запрос на звание $DIL0. Причина: $DIL1
+: Администрация отклонила ваш запрос на звание $DIL2.,
+requestId
+);
+
+        await batch.commit();
+
+showMessage(
+Запрос бойца № $DIL0 отклонён.
+);
+
+    } catch (error) {
+
+        console.error("Ошибка отклонения повышения:", error);
+
+showMessage(
+            "Не удалось отклонить запрос: " + error.message,
+            true
+        );
+
+        button.disabled = false;
+
+    }
+
+}
 
 // ==========================================
-// ОТОБРАЖЕНИЕ ПОЛЬЗОВАТЕЛЕЙ
+// ЗАГРУЗКА И ОТОБРАЖЕНИЕ ПОЛЬЗОВАТЕЛЕЙ
 // ==========================================
 
 function renderUsers() {
 
-    const searchValue =
+const searchValue =
         usersSearch.value.trim().toLowerCase();
 
     const filteredUsers = allUsers.filter(user => {
 
-        const searchable = [
+const searchable = [
             user.soldierNumber,
             user.rank,
             user.status,
@@ -627,52 +927,30 @@ function renderUsers() {
 
     if (filteredUsers.length === 0) {
 
-        usersList.innerHTML = `
-            <div class="admin-empty">
-                Пользователи не найдены.
-            </div>
-        `;
+usersList.innerHTML = `
 
-        return;
+`;
+
+return;
     }
 
     usersList.innerHTML = filteredUsers.map(user => {
 
         const uid = escapeHtml(user.uid);
 
-        const number = escapeHtml(
-            user.soldierNumber || "Не указан"
-        );
+        const number = escapeHtml(user.soldierNumber || "Не указан");
 
-        const rank = escapeHtml(
-            getRankDescription(user.rank)
-        );
+        const rank = escapeHtml(getRankDescription(user.rank));
 
-        const status = escapeHtml(
-            getStatusLabel(user.status)
-        );
+        const status = escapeHtml(getStatusLabel(user.status));
 
-        const role = escapeHtml(
-            user.role || "user"
-        );
+        const role = escapeHtml(user.role || "user");
 
+// Возможность изменения звания.
+        // Обычный admin меняет звания обычным бойцам.
+        // superadmin может менять звания обычным и администраторам.
 
-        // ======================================
-        // ПРАВА НА ИЗМЕНЕНИЕ ЗВАНИЯ
-        // ======================================
-
-        let rankControls = "";
-
-        // Обычный администратор может менять звание
-        // обычным пользователям.
-        //
-        // Главный администратор может менять звание
-        // обычным пользователям и администраторам.
-        //
-        // Звание и роль не зависят друг от друга.
-        // Собственное звание через карточку не меняется.
-
-        const canEditRank =
+const canEditRank =
             user.uid !== currentUser.uid &&
             (
                 user.role === "user" ||
@@ -682,46 +960,17 @@ function renderUsers() {
                 )
             );
 
+        let rankControls = "";
+
         if (canEditRank) {
 
-            rankControls = `
-                <div class="admin-field">
+rankControls = `
 
-                    <label>Изменить звание:</label>
-
-                    <select
-                        class="admin-select"
-                        data-rank-select
-                    >
-                        ${buildRankOptions(user.rank || "")}
-                    </select>
-
-                    <div class="admin-small-note" data-level-preview>
-                        ${escapeHtml(getRankDescription(user.rank))}
-                    </div>
-
-                    <div class="admin-actions">
-
-                        <button
-                            type="button"
-                            class="admin-button admin-save"
-                            data-action="save-rank"
-                            data-uid="${uid}"
-                        >
-                            СОХРАНИТЬ ЗВАНИЕ
-                        </button>
-
-                    </div>
-
-                </div>
-            `;
+`;
 
         }
 
-
-        // ======================================
-        // УПРАВЛЕНИЕ АДМИНИСТРАТИВНЫМИ РОЛЯМИ
-        // ======================================
+        // Управление ролями доступно только superadmin.
 
         let roleControls = "";
 
@@ -729,110 +978,33 @@ function renderUsers() {
 
             if (user.role === "superadmin") {
 
-                roleControls = `
-                    <div class="admin-field">
+roleControls = `
 
-                        <label>Административная роль:</label>
-
-                        <strong>Главный администратор</strong>
-
-                        <div class="admin-small-note">
-                            Роль главного администратора закреплена отдельно.
-                        </div>
-
-                    </div>
-                `;
+`;
 
             } else {
 
-                roleControls = `
-                    <div class="admin-field">
+roleControls = `
 
-                        <label>Административная роль:</label>
-
-                        <select
-                            class="admin-select"
-                            data-role-select
-                        >
-
-                            <option
-                                value="user"
-                                ${user.role === "user" ? "selected" : ""}
-                            >
-                                Обычный пользователь
-                            </option>
-
-                            <option
-                                value="admin"
-                                ${user.role === "admin" ? "selected" : ""}
-                            >
-                                Администратор
-                            </option>
-
-                        </select>
-
-                        <div class="admin-actions">
-
-                            <button
-                                type="button"
-                                class="admin-button admin-save"
-                                data-action="save-role"
-                                data-uid="${uid}"
-                            >
-                                СОХРАНИТЬ РОЛЬ
-                            </button>
-
-                        </div>
-
-                    </div>
-                `;
+                            Администратор
+                        
+                        
+                    `;
 
             }
 
         }
 
+return `
 
-        return `
-            <article class="admin-card" data-user-card="${uid}">
-
-                <div class="admin-card-header">
-
-                    <h3>Боец № ${number}</h3>
-
-                    <span class="admin-status">
-                        ${status}
-                    </span>
-
-                </div>
-
-                <div class="admin-meta">
-
-                    <div>UID: ${uid}</div>
-
-                    <div>Звание: ${rank}</div>
-
-                    <div>Роль: ${role}</div>
-
-                    <div>
-                        Дата регистрации:
-                        ${escapeHtml(formatDate(user.createdAt))}
-                    </div>
-
-                </div>
-
-                ${rankControls}
-
-                ${roleControls}
-
-            </article>
-        `;
+`;
 
     }).join("");
+
 }
 
-
 // ==========================================
-// СОХРАНЕНИЕ НОВОГО ЗВАНИЯ
+// СОХРАНЕНИЕ ЗВАНИЯ В СПИСКЕ ПОЛЬЗОВАТЕЛЕЙ
 // ==========================================
 
 async function saveUserRank(uid, button) {
@@ -841,20 +1013,13 @@ async function saveUserRank(uid, button) {
 
     const rank = card.querySelector("[data-rank-select]").value;
 
-    if (!rank) {
-
-        showMessage("Выберите звание.", true);
-
-        return;
-    }
-
     const accessLevel = getLevelByRank(rank);
 
-    if (!Number.isInteger(accessLevel)) {
+    if (!rank || !Number.isInteger(accessLevel)) {
 
-        showMessage("Не удалось определить уровень звания.", true);
+        showMessage("Выберите корректное звание.", true);
 
-        return;
+return;
     }
 
     button.disabled = true;
@@ -867,26 +1032,20 @@ async function saveUserRank(uid, button) {
 
             accessLevel: accessLevel,
 
-            updatedAt:
+updatedAt:
                 firebase.firestore.FieldValue.serverTimestamp()
 
         });
 
-        const levelLabel = accessLevel === 7
-            ? "КМД"
-            : accessLevel;
-
-        showMessage(
-            `Звание изменено: ${rank}. Уровень: ${levelLabel}.`
-        );
-
-        await loadAllData();
+showMessage(
+Звание изменено: $DIL0. Уровень: $DIL1.
+);
 
     } catch (error) {
 
         console.error("Ошибка изменения звания:", error);
 
-        showMessage(
+showMessage(
             "Не удалось изменить звание: " + error.message,
             true
         );
@@ -894,23 +1053,23 @@ async function saveUserRank(uid, button) {
         button.disabled = false;
 
     }
+
 }
 
-
 // ==========================================
-// УПРАВЛЕНИЕ РОЛЯМИ — ТОЛЬКО SUPERADMIN
+// УПРАВЛЕНИЕ АДМИНИСТРАТИВНЫМИ РОЛЯМИ
 // ==========================================
 
 async function saveUserRole(uid, button) {
 
     if (currentProfile.role !== "superadmin") {
 
-        showMessage(
+showMessage(
             "Только главный администратор может назначать администраторов.",
             true
         );
 
-        return;
+return;
     }
 
     const card = button.closest("[data-user-card]");
@@ -921,20 +1080,20 @@ async function saveUserRole(uid, button) {
 
         showMessage("Недопустимая роль.", true);
 
-        return;
+return;
     }
 
     if (uid === currentUser.uid) {
 
-        showMessage(
+showMessage(
             "Нельзя изменить собственную роль через этот раздел.",
             true
         );
 
-        return;
+return;
     }
 
-    const confirmed = confirm(
+const confirmed = confirm(
         newRole === "admin"
             ? "Назначить этому пользователю администратора?"
             : "Снять с этого пользователя права администратора?"
@@ -950,24 +1109,22 @@ async function saveUserRole(uid, button) {
 
             role: newRole,
 
-            updatedAt:
+updatedAt:
                 firebase.firestore.FieldValue.serverTimestamp()
 
         });
 
-        showMessage(
+showMessage(
             newRole === "admin"
                 ? "Пользователь назначен администратором."
                 : "Права администратора сняты."
         );
 
-        await loadAllData();
-
     } catch (error) {
 
         console.error("Ошибка изменения роли:", error);
 
-        showMessage(
+showMessage(
             "Не удалось изменить роль: " + error.message,
             true
         );
@@ -975,49 +1132,57 @@ async function saveUserRole(uid, button) {
         button.disabled = false;
 
     }
-}
 
+}
 
 // ==========================================
 // ОБРАБОТКА КНОПОК
 // ==========================================
 
-document.addEventListener("click", async (event) => {
+document.addEventListener("click", async event => {
 
     const button = event.target.closest("[data-action]");
 
     if (!button) return;
 
-    const action = button.dataset.action;
+    if (button.disabled) return;
 
+const action = button.dataset.action;
     const uid = button.dataset.uid;
 
     if (!uid) return;
 
-    if (action === "approve") {
-        await approveUser(uid, button);
+if (action === "approve-registration") {
+        await approveRegistration(uid, button);
     }
 
-    else if (action === "reject") {
-        await rejectUser(uid, button);
+else if (action === "reject-registration") {
+        await rejectRegistration(uid, button);
     }
 
-    else if (action === "save-rank") {
+else if (action === "approve-rank") {
+        await approveRankRequest(uid, button);
+    }
+
+else if (action === "reject-rank") {
+        await rejectRankRequest(uid, button);
+    }
+
+else if (action === "save-rank") {
         await saveUserRank(uid, button);
     }
 
-    else if (action === "save-role") {
+else if (action === "save-role") {
         await saveUserRole(uid, button);
     }
 
 });
 
-
 // ==========================================
-// ПРЕДВАРИТЕЛЬНЫЙ ПРОСМОТР УРОВНЯ ЗВАНИЯ
+// ПРЕДВАРИТЕЛЬНЫЙ ПРОСМОТР УРОВНЯ
 // ==========================================
 
-document.addEventListener("change", (event) => {
+document.addEventListener("change", event => {
 
     if (!event.target.matches("[data-rank-select]")) return;
 
@@ -1027,72 +1192,31 @@ document.addEventListener("change", (event) => {
 
     const rank = event.target.value;
 
-    if (!rank) {
+preview.textContent = rank
+        ? getRankDescription(rank)
+        : "Выберите звание для определения уровня.";
 
-        preview.textContent =
-            "Выберите звание для определения уровня доступа.";
-
-    } else {
-
-        preview.textContent = getRankDescription(rank);
-
-    }
-
-    const approveButton = card.querySelector(
-        '[data-action="approve"]'
+const approveButton = card.querySelector(
+        '[data-action="approve-registration"]'
     );
 
-    if (approveButton) {
-        approveButton.disabled = !rank;
+if (approveButton) {
+        approveButton.disabled = !Number.isInteger(getLevelByRank(rank));
     }
 
 });
-
 
 // ==========================================
 // ПОИСК ПОЛЬЗОВАТЕЛЕЙ
 // ==========================================
 
-usersSearch.addEventListener("input", () => {
-    renderUsers();
-});
-
+usersSearch.addEventListener("input", renderUsers);
 
 // ==========================================
-// ОБЩАЯ ЗАГРУЗКА ДАННЫХ
+// ПРОВЕРКА ПРАВ И ЗАПУСК ПОДПИСОК
 // ==========================================
 
-async function loadAllData() {
-
-    showMessage("Обновление данных...");
-
-    try {
-
-        await Promise.all([
-            loadPendingApplications(),
-            loadUsers()
-        ]);
-
-        showMessage("Данные административной панели обновлены.");
-
-    } catch (error) {
-
-        console.error("Ошибка загрузки данных:", error);
-
-        showMessage(
-            "Не удалось загрузить данные: " + error.message,
-            true
-        );
-
-    }
-}
-
-
-// ==========================================
-// ПРОВЕРКА АДМИНИСТРАТИВНЫХ ПРАВ
-// ==========================================
-
-auth.onAuthStateChanged(async (user) => {
+auth.onAuthStateChanged(async user => {
 
     currentUser = user;
 
@@ -1100,26 +1224,26 @@ auth.onAuthStateChanged(async (user) => {
 
         window.location.href = "../login/login.html";
 
-        return;
+return;
     }
 
     try {
 
-        const profileSnapshot = await db
+const snapshot = await db
             .collection("users")
             .doc(user.uid)
             .get();
 
-        if (!profileSnapshot.exists) {
+        if (!snapshot.exists) {
 
             await auth.signOut();
 
             window.location.href = "../login/login.html";
 
-            return;
+return;
         }
 
-        currentProfile = profileSnapshot.data();
+        currentProfile = snapshot.data();
 
         if (currentProfile.status !== "approved") {
 
@@ -1127,48 +1251,48 @@ auth.onAuthStateChanged(async (user) => {
 
             window.location.href = "../login/login.html";
 
-            return;
+return;
         }
 
-        if (
+if (
             currentProfile.role !== "admin" &&
             currentProfile.role !== "superadmin"
         ) {
 
-            showMessage(
+showMessage(
                 "У вас нет административных полномочий.",
                 true
             );
 
             adminIdentity.textContent = "Доступ запрещён";
 
-            setTimeout(() => {
+setTimeout(() => {
                 window.location.href = "../dashboard/index.html";
             }, 1500);
 
-            return;
+return;
         }
 
-        const number =
+const number =
             currentProfile.soldierNumber ||
             user.email.split("@")[0];
 
-        const roleLabel =
+const roleLabel =
             currentProfile.role === "superadmin"
                 ? "Главный администратор"
                 : "Администратор";
 
-        adminIdentity.textContent =
-            `Боец № ${number} | ${roleLabel}`;
+adminIdentity.textContent =
+Боец № $DIL0 | $DIL1;
 
-        await loadAllData();
+        startRealtimeListeners();
 
     } catch (error) {
 
         console.error("Ошибка проверки доступа:", error);
 
-        showMessage(
-            "Ошибка проверки административных прав: " + error.message,
+showMessage(
+            "Не удалось проверить административные права: " + error.message,
             true
         );
 
@@ -1180,12 +1304,15 @@ auth.onAuthStateChanged(async (user) => {
 
 });
 
-
 // ==========================================
-// ВЫХОД ИЗ АККАУНТА
+// ВЫХОД И ОТКЛЮЧЕНИЕ ПОДПИСОК
 // ==========================================
 
 document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+if (unsubscribePending) unsubscribePending();
+    if (unsubscribeRankRequests) unsubscribeRankRequests();
+    if (unsubscribeUsers) unsubscribeUsers();
 
     try {
 
