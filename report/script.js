@@ -15,10 +15,31 @@ const db = firebase.firestore();
 const DISCORD_WEBHOOK_URL =
     'https://erk-proxy.cotnow1000.workers.dev/report';
 
-const reportForm = document.getElementById('reportForm');
-const statusDiv = document.getElementById('formStatus');
+const reportForm =
+    document.getElementById('reportForm');
 
-let currentProfile = null;
+const statusDiv =
+    document.getElementById('formStatus');
+
+const reportingInput =
+    document.getElementById('reporting');
+
+const soldierInfoInput =
+    document.getElementById('soldierInfo');
+
+const oldRankSelect =
+    document.getElementById('oldRank');
+
+const steamIdInput =
+    document.getElementById('steamId');
+
+const steamIdGroup =
+    document.getElementById('steamIdGroup');
+
+const submitBtn =
+    reportForm.querySelector('.btn-submit');
+
+let currentProfileData = null;
 let isSubmitting = false;
 
 
@@ -39,9 +60,6 @@ async function getReportAccessData(user) {
 
     const profile = profileSnapshot.data();
 
-
-    // Проверяем одобрение аккаунта.
-
     if (profile.status !== 'approved') {
         throw new Error(
             'Ваш аккаунт ещё не одобрен администрацией.'
@@ -49,7 +67,7 @@ async function getReportAccessData(user) {
     }
 
 
-    // Проверяем наличие позывного.
+    // Позывной обязателен.
 
     if (
         typeof profile.callsign !== 'string' ||
@@ -64,7 +82,7 @@ async function getReportAccessData(user) {
     }
 
 
-    // Получаем номер бойца.
+    // Номер берётся из профиля.
 
     const soldierNumber =
         typeof profile.soldierNumber === 'string' &&
@@ -77,20 +95,17 @@ async function getReportAccessData(user) {
             );
 
     if (!soldierNumber) {
-        throw new Error(
-            'Не удалось определить номер бойца.'
-        );
+        throw new Error('Не удалось определить номер бойца.');
     }
 
 
-    // Получаем звание и уровень доступа.
+    // Звание и уровень доступа.
 
     let authorRank = profile.rank;
     let accessLevel = profile.accessLevel;
 
 
-    // Администратор без обычного звания получает
-    // отдельную метку и седьмой уровень доступа.
+    // Администратор без обычного звания.
 
     if (
         ['admin', 'superadmin'].includes(profile.role) &&
@@ -98,7 +113,6 @@ async function getReportAccessData(user) {
     ) {
 
         authorRank = 'Администрация';
-
         accessLevel = 7;
 
     }
@@ -121,8 +135,6 @@ async function getReportAccessData(user) {
 
     return {
 
-        profile: profile,
-
         soldierNumber: soldierNumber,
 
         callsign: profile.callsign.trim(),
@@ -137,80 +149,50 @@ async function getReportAccessData(user) {
 
 
 // ==========================================
-// АВТОМАТИЧЕСКОЕ ЗАПОЛНЕНИЕ ПОЛЕЙ
+// АВТОМАТИЧЕСКОЕ ЗАПОЛНЕНИЕ ДОКЛАДЫВАЮЩЕГО
 // ==========================================
 
-function fillIdentityFields(data) {
+function fillReportingField(profile) {
 
-    const reporting =
-        document.getElementById('reporting');
+    if (!profile || !reportingInput) return;
 
-    const soldierInfo =
-        document.getElementById('soldierInfo');
+    reportingInput.value =
+        `${profile.soldierNumber} | ${profile.callsign} | ${profile.authorRank}`;
 
-    const oldRank =
-        document.getElementById('oldRank');
+    reportingInput.readOnly = true;
 
-
-    // Докладывает:
-    // Номер | Позывной | Звание
-
-    if (reporting) {
-
-        reporting.value =
-            `${data.soldierNumber} | ${data.callsign} | ${data.authorRank}`;
-
-        reporting.readOnly = true;
-
-    }
+}
 
 
-    // Н | П бойца:
-    // Номер | Позывной
+// ==========================================
+// УПРАВЛЕНИЕ ПОЛЕМ STEAM ID
+// ==========================================
 
-    if (soldierInfo) {
+function updateSteamIdVisibility() {
 
-        soldierInfo.value =
-            `${data.soldierNumber} | ${data.callsign}`;
+    const isCadet =
+        oldRankSelect.value === 'Кадет';
 
-        soldierInfo.readOnly = true;
+    steamIdGroup.style.display =
+        isCadet ? 'block' : 'none';
 
-    }
+    steamIdInput.required = isCadet;
 
+    steamIdInput.disabled = !isCadet;
 
-    // Старое звание автоматически берётся из профиля.
-    // Если такого значения нет в списке HTML,
-    // добавляем его в список.
-
-    if (
-        oldRank &&
-        data.profile.rank &&
-        typeof data.profile.rank === 'string'
-    ) {
-
-        const rank = data.profile.rank;
-
-        const hasOption = Array.from(oldRank.options).some(
-            option => option.value === rank
-        );
-
-        if (!hasOption) {
-
-            const option = document.createElement('option');
-
-            option.value = rank;
-
-            option.textContent = rank;
-
-            oldRank.appendChild(option);
-
-        }
-
-        oldRank.value = rank;
-
+    if (!isCadet) {
+        steamIdInput.value = '';
     }
 
 }
+
+
+// Показываем SteamID только для старого звания «Кадет».
+
+oldRankSelect.addEventListener(
+    'change',
+    updateSteamIdVisibility
+);
 
 
 // ==========================================
@@ -244,32 +226,25 @@ function showStatus(message, type = 'info') {
 
 auth.onAuthStateChanged(async user => {
 
+    submitBtn.disabled = true;
+
     if (!user) {
 
-        window.location.href = '../login/login.html';
+        window.location.href =
+            '../login/login.html';
 
         return;
 
     }
 
-    const submitBtn =
-        reportForm.querySelector('.btn-submit');
-
-    submitBtn.disabled = true;
-
     try {
 
-        // Получаем профиль из Firestore.
+        currentProfileData =
+            await getReportAccessData(user);
 
-        currentProfile = await getReportAccessData(user);
+        fillReportingField(currentProfileData);
 
-
-        // Заполняем автоматические поля.
-
-        fillIdentityFields(currentProfile);
-
-
-        // Разрешаем отправку после проверки профиля.
+        updateSteamIdVisibility();
 
         submitBtn.disabled = false;
 
@@ -284,11 +259,9 @@ auth.onAuthStateChanged(async user => {
 
         submitBtn.disabled = true;
 
-        // При отсутствии позывного возвращаем бойца
-        // в главное меню для заполнения профиля.
 
         if (
-            error.message.includes('позывной')
+            error.message.toLowerCase().includes('позывной')
         ) {
 
             setTimeout(() => {
@@ -306,18 +279,18 @@ auth.onAuthStateChanged(async user => {
 
 
 // ==========================================
-// СОХРАНЕНИЕ АВТОМАТИЧЕСКИХ ПОЛЕЙ ПОСЛЕ СБРОСА
+// СБРОС ФОРМЫ
 // ==========================================
 
 reportForm.addEventListener('reset', () => {
 
     setTimeout(() => {
 
-        if (currentProfile) {
-
-            fillIdentityFields(currentProfile);
-
+        if (currentProfileData) {
+            fillReportingField(currentProfileData);
         }
+
+        updateSteamIdVisibility();
 
     }, 0);
 
@@ -345,29 +318,17 @@ reportForm.addEventListener('submit', async function(event) {
 
     }
 
-
-    // Защита от повторной отправки.
-
     if (isSubmitting) return;
-
-    const form = event.target;
-
-    const submitBtn =
-        form.querySelector('.btn-submit');
 
     isSubmitting = true;
 
     submitBtn.classList.add('loading');
-
     submitBtn.disabled = true;
 
 
     let docRef = null;
-
     let firestoreSaved = false;
-
     let discordResponseAccepted = false;
-
     let createdMessageId = null;
 
 
@@ -385,57 +346,60 @@ reportForm.addEventListener('submit', async function(event) {
         const reportAccess =
             await getReportAccessData(user);
 
-        currentProfile = reportAccess;
+        currentProfileData = reportAccess;
 
-        fillIdentityFields(reportAccess);
+        fillReportingField(reportAccess);
 
 
         // ==========================================
-        // 2. ФОРМИРУЕМ ДАННЫЕ РАПОРТА
+        // 2. ПОЛУЧАЕМ ДАННЫЕ ФОРМЫ
         // ==========================================
 
         const reporting =
             `${reportAccess.soldierNumber} | ${reportAccess.callsign} | ${reportAccess.authorRank}`;
 
-        const soldierInfo =
-            `${reportAccess.soldierNumber} | ${reportAccess.callsign}`;
+        // Номер и позывной другого бойца указываются вручную.
 
-        const issuedBy =
-            document.getElementById('issuedBy').value.trim();
+        const soldierInfo =
+            soldierInfoInput.value.trim();
 
         const oldRank =
-            document.getElementById('oldRank').value;
+            oldRankSelect.value;
 
         const newRank =
             document.getElementById('newRank').value;
 
         const steamId =
-            document.getElementById('steamId').value.trim();
+            steamIdInput.value.trim();
 
         const reportDate =
             document.getElementById('reportDate').value;
 
 
-        if (!issuedBy) {
+        // ==========================================
+        // 3. ПРОВЕРЯЕМ ДАННЫЕ
+        // ==========================================
+
+        if (!soldierInfo) {
 
             throw new Error(
-                'Укажите, кто выдал форму.'
+                'Укажите номер и позывной бойца.'
             );
 
         }
 
-        if (!oldRank || !newRank) {
+        if (!oldRank) {
 
             throw new Error(
-                'Выберите старое и новое звание.'
+                'Выберите старое звание.'
             );
 
         }
 
-        if (!steamId) {
+        if (!newRank) {
 
             throw new Error(
-                'Укажите SteamID.'
+                'Выберите новое звание.'
             );
 
         }
@@ -449,7 +413,70 @@ reportForm.addEventListener('submit', async function(event) {
         }
 
 
-        // Срок действия рапорта — три дня.
+        // SteamID обязателен только для кадета.
+
+        if (oldRank === 'Кадет' && !steamId) {
+
+            throw new Error(
+                'При повышении с кадета необходимо указать SteamID.'
+            );
+
+        }
+
+
+        // ==========================================
+        // 4. ФОРМИРУЕМ ДАННЫЕ РАПОРТА
+        // ==========================================
+
+        const formData = {
+
+            // Автор рапорта одновременно выдаёт форму.
+
+            reporting: reporting,
+
+            // Данные бойца, которому меняют звание.
+
+            soldierInfo: soldierInfo,
+
+            // Личные данные автора в отдельных полях.
+
+            soldierNumber: reportAccess.soldierNumber,
+
+            callsign: reportAccess.callsign,
+
+            // Изменение звания.
+
+            oldRank: oldRank,
+
+            newRank: newRank,
+
+            reportDate: reportDate,
+
+            reportType: 'Новый рапорт',
+
+            formType: 'Новый рапорт',
+
+            // Уровень доступа и звание автора.
+
+            authorRank: reportAccess.authorRank,
+
+            accessLevel: reportAccess.accessLevel
+
+        };
+
+
+        // SteamID сохраняется только для кадета.
+
+        if (oldRank === 'Кадет') {
+
+            formData.steamId = steamId;
+
+        }
+
+
+        // ==========================================
+        // 5. СРОК ОТОБРАЖЕНИЯ РАПОРТА
+        // ==========================================
 
         const expiresAt = new Date();
 
@@ -459,60 +486,7 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==========================================
-        // 3. ПОДГОТАВЛИВАЕМ ДАННЫЕ FIRESTORE
-        // ==========================================
-
-        const formData = {
-
-            // Сведения о докладывающем.
-
-            reporting: reporting,
-
-            issuedBy: issuedBy,
-
-            soldierInfo: soldierInfo,
-
-
-            // Отдельные поля профиля.
-
-            soldierNumber:
-                reportAccess.soldierNumber,
-
-            callsign:
-                reportAccess.callsign,
-
-
-            // Данные изменения звания.
-
-            oldRank: oldRank,
-
-            newRank: newRank,
-
-            steamId: steamId,
-
-            reportDate: reportDate,
-
-
-            // Тип рапорта.
-
-            reportType: "Новый рапорт",
-
-            formType: "Новый рапорт",
-
-
-            // Уровень доступа и звание автора.
-
-            authorRank:
-                reportAccess.authorRank,
-
-            accessLevel:
-                reportAccess.accessLevel
-
-        };
-
-
-        // ==========================================
-        // 4. СОХРАНЯЕМ РАПОРТ В FIRESTORE
+        // 6. СОХРАНЯЕМ РАПОРТ В FIRESTORE
         // ==========================================
 
         docRef = await db
@@ -529,7 +503,7 @@ reportForm.addEventListener('submit', async function(event) {
                 expires_at:
                     firebase.firestore.Timestamp.fromDate(expiresAt),
 
-                discordSyncStatus: "pending",
+                discordSyncStatus: 'pending',
 
                 discordSyncError: null,
 
@@ -541,69 +515,81 @@ reportForm.addEventListener('submit', async function(event) {
 
         firestoreSaved = true;
 
-
         showStatus(
             'Рапорт сохранён. Отправка в Discord...'
         );
 
 
         // ==========================================
-        // 5. ФОРМИРУЕМ DISCORD EMBED
+        // 7. ФОРМИРУЕМ DISCORD EMBED
         // ==========================================
+
+        const discordFields = [
+
+            {
+                name: 'Докладывает / выдал форму:',
+                value: `\`${reporting}\``,
+                inline: false
+            },
+
+            {
+                name: 'Н | П бойца:',
+                value: soldierInfo,
+                inline: false
+            },
+
+            {
+                name: 'Изменение звания:',
+                value: `~~${oldRank}~~ ➔ **${newRank}**`,
+                inline: false
+            }
+
+        ];
+
+
+        // SteamID добавляется только при повышении с кадета.
+
+        if (oldRank === 'Кадет') {
+
+            discordFields.push({
+
+                name: 'SteamID:',
+
+                value: `\`${steamId}\``,
+
+                inline: false
+
+            });
+
+        }
+
+
+        discordFields.push({
+
+            name: 'Дата рапорта:',
+
+            value: reportDate,
+
+            inline: false
+
+        });
+
 
         const payload = {
 
-            username: "Канцелярия 41-го ЭРК",
+            username: 'Канцелярия 41-го ЭРК',
 
             embeds: [
 
                 {
 
-                    title: "📝 Новый рапорт об изменении звания.",
+                    title: '📝 Новый рапорт об изменении звания.',
 
                     color: 3096367,
 
-                    description: "📌 **Основные данные**",
+                    description: '📌 **Основные данные**',
 
-                    fields: [
-
-                        {
-                            name: "Докладывает:",
-                            value: `\`${reporting}\``,
-                            inline: false
-                        },
-
-                        {
-                            name: "Кто выдал форму:",
-                            value: `\`${issuedBy}\``,
-                            inline: false
-                        },
-
-                        {
-                            name: "Н | П бойца:",
-                            value: soldierInfo,
-                            inline: false
-                        },
-
-                        {
-                            name: "Изменение звания:",
-                            value: `~~${oldRank}~~ ➔ **${newRank}**`,
-                            inline: false
-                        },
-
-                        {
-                            name: "SteamID:",
-                            value: `\`${steamId}\``,
-                            inline: false
-                        },
-
-                        {
-                            name: "Дата рапорта:",
-                            value: reportDate,
-                            inline: false
-                        }
-
-                    ],
+                    fields: discordFields,
 
                     timestamp: new Date().toISOString()
 
@@ -615,7 +601,7 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==========================================
-        // 6. ОТПРАВЛЯЕМ РАПОРТ В DISCORD
+        // 8. ОТПРАВЛЯЕМ В DISCORD
         // ==========================================
 
         const response = await fetch(
@@ -634,8 +620,7 @@ reportForm.addEventListener('submit', async function(event) {
         );
 
 
-        const responseText =
-            await response.text();
+        const responseText = await response.text();
 
         let discordResult = {};
 
@@ -683,16 +668,14 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==========================================
-        // 7. ОБНОВЛЯЕМ СТАТУС СИНХРОНИЗАЦИИ
+        // 9. ОБНОВЛЯЕМ СТАТУС СИНХРОНИЗАЦИИ
         // ==========================================
 
         await docRef.update({
 
-            discordMessageId:
-                createdMessageId,
+            discordMessageId: createdMessageId,
 
-            discordSyncStatus:
-                "synced",
+            discordSyncStatus: 'synced',
 
             discordSyncError:
                 firebase.firestore.FieldValue.delete(),
@@ -706,21 +689,14 @@ reportForm.addEventListener('submit', async function(event) {
         });
 
 
-        // ==========================================
-        // 8. ЗАВЕРШЕНИЕ
-        // ==========================================
-
         showStatus(
             'Рапорт успешно сохранён и отправлен в Discord!',
             'success'
         );
 
+        reportForm.reset();
 
-        form.reset();
-
-        // Возвращаем данные бойца после сброса формы.
-
-        fillIdentityFields(reportAccess);
+        fillReportingField(reportAccess);
 
 
     } catch (error) {
@@ -732,7 +708,7 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==========================================
-        // СОХРАНЯЕМ ОШИБКУ DISCORD СИНХРОНИЗАЦИИ
+        // 10. СОХРАНЯЕМ ОШИБКУ DISCORD
         // ==========================================
 
         if (docRef && firestoreSaved) {
@@ -741,7 +717,7 @@ reportForm.addEventListener('submit', async function(event) {
 
                 const failedData = {
 
-                    discordSyncStatus: "failed",
+                    discordSyncStatus: 'failed',
 
                     discordSyncError:
                         String(error.message).slice(0, 1000),
@@ -751,14 +727,12 @@ reportForm.addEventListener('submit', async function(event) {
 
                 };
 
-
                 if (createdMessageId) {
 
                     failedData.discordMessageId =
                         createdMessageId;
 
                 }
-
 
                 await docRef.update(failedData);
 
@@ -775,49 +749,37 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==========================================
-        // ЕСЛИ FIRESTORE УЖЕ СОХРАНИЛ РАПОРТ
+        // 11. ОБРАБОТКА РЕЗУЛЬТАТА
         // ==========================================
 
         if (firestoreSaved) {
 
-            form.reset();
+            reportForm.reset();
 
-            if (currentProfile) {
-                fillIdentityFields(currentProfile);
+            if (currentProfileData) {
+                fillReportingField(currentProfileData);
             }
 
 
             if (createdMessageId) {
 
                 showStatus(
-
-                    'Рапорт сохранён, сообщение создано, но не удалось сохранить подтверждение Discord в Firestore. Не отправляйте рапорт повторно. ID рапорта: ' +
-                    docRef.id,
-
+                    'Рапорт сохранён, сообщение создано, но подтверждение синхронизации не сохранено. Не отправляйте форму повторно. ID рапорта: ' + docRef.id,
                     'error'
-
                 );
 
             } else if (discordResponseAccepted) {
 
                 showStatus(
-
-                    'Рапорт сохранён в Firestore, но Discord не вернул ID сообщения. Сообщение могло появиться в Discord. Не отправляйте форму повторно. ID рапорта: ' +
-                    docRef.id,
-
+                    'Рапорт сохранён в Firestore, но Discord не вернул ID сообщения. Сообщение могло появиться в Discord. Не отправляйте форму повторно. ID рапорта: ' + docRef.id,
                     'error'
-
                 );
 
             } else {
 
                 showStatus(
-
-                    'Рапорт сохранён в Firestore, но отправка в Discord не подтверждена. Не отправляйте его повторно, чтобы не создать дубликат. ID рапорта: ' +
-                    docRef.id,
-
+                    'Рапорт сохранён в Firestore, но отправка в Discord не подтверждена. Не отправляйте его повторно, чтобы избежать дубликата. ID рапорта: ' + docRef.id,
                     'error'
-
                 );
 
             }
@@ -837,7 +799,7 @@ reportForm.addEventListener('submit', async function(event) {
 
         submitBtn.classList.remove('loading');
 
-        submitBtn.disabled = false;
+        submitBtn.disabled = !currentProfileData;
 
     }
 
