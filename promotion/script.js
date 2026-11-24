@@ -15,12 +15,20 @@ const db = firebase.firestore();
 const PROMOTION_WEBHOOK_URL =
     'https://erk-proxy.cotnow1000.workers.dev/promotion';
 
+const promotionForm =
+    document.getElementById('promotionForm');
 
-const promotionForm = document.getElementById('promotionForm');
-const statusDiv = document.getElementById('formStatus');
-const currentRankInfo = document.getElementById('currentRankInfo');
-const rankRequestState = document.getElementById('rankRequestState');
-const reportingInput = document.getElementById('reporting');
+const statusDiv =
+    document.getElementById('formStatus');
+
+const currentRankInfo =
+    document.getElementById('currentRankInfo');
+
+const rankRequestState =
+    document.getElementById('rankRequestState');
+
+const reportingInput =
+    document.getElementById('reporting');
 
 let currentUser = null;
 let currentProfile = null;
@@ -32,6 +40,7 @@ let isSubmitting = false;
 // ======================================================
 
 const RANK_GROUPS = [
+
     {
         level: 0,
         ranks: [
@@ -40,6 +49,7 @@ const RANK_GROUPS = [
             "Старший рядовой"
         ]
     },
+
     {
         level: 1,
         ranks: [
@@ -47,6 +57,7 @@ const RANK_GROUPS = [
             "Капрал"
         ]
     },
+
     {
         level: 2,
         ranks: [
@@ -55,6 +66,7 @@ const RANK_GROUPS = [
             "Сержант первого класса"
         ]
     },
+
     {
         level: 3,
         ranks: [
@@ -63,6 +75,7 @@ const RANK_GROUPS = [
             "Сержант-майор"
         ]
     },
+
     {
         level: 4,
         ranks: [
@@ -70,6 +83,7 @@ const RANK_GROUPS = [
             "Сержант-майор сухопутных войск"
         ]
     },
+
     {
         level: 5,
         ranks: [
@@ -77,6 +91,7 @@ const RANK_GROUPS = [
             "Лейтенант"
         ]
     },
+
     {
         level: 6,
         ranks: [
@@ -86,14 +101,17 @@ const RANK_GROUPS = [
             "Полковник"
         ]
     }
+
 ];
 
 
 const ALL_RANKS = RANK_GROUPS.flatMap(group =>
+
     group.ranks.map(name => ({
         name,
         level: group.level
     }))
+
 );
 
 
@@ -112,11 +130,13 @@ function showStatus(message, type = 'info') {
     statusDiv.style.display = 'block';
 
     if (type === 'success') {
-        statusDiv.classList.add('success');
-    }
 
-    if (type === 'error') {
+        statusDiv.classList.add('success');
+
+    } else if (type === 'error') {
+
         statusDiv.classList.add('error');
+
     }
 
 }
@@ -125,11 +145,13 @@ function showStatus(message, type = 'info') {
 function escapeHtml(value) {
 
     return String(value ?? '').replace(/[&<>"']/g, char => ({
+
         '&': '&amp;',
         '<': '&lt;',
         '>': '&gt;',
         '"': '&quot;',
         "'": '&#39;'
+
     })[char]);
 
 }
@@ -137,11 +159,13 @@ function escapeHtml(value) {
 
 function getSoldierNumber(profile, user) {
 
-    if (
-        typeof profile.soldierNumber === 'string' &&
-        profile.soldierNumber.trim()
-    ) {
-        return profile.soldierNumber.trim();
+    const number =
+        typeof profile.soldierNumber === 'string'
+            ? profile.soldierNumber.trim()
+            : '';
+
+    if (number) {
+        return number;
     }
 
     if (user.email) {
@@ -149,7 +173,7 @@ function getSoldierNumber(profile, user) {
     }
 
     throw new Error(
-        'Не удалось определить номер бойца. Обратитесь к администрации.'
+        'Не удалось определить номер бойца.'
     );
 
 }
@@ -173,25 +197,38 @@ async function getCurrentProfile(user) {
     const profile = snapshot.data();
 
 
-    // Проверяем одобрение аккаунта.
-
     if (profile.status !== 'approved') {
+
         throw new Error(
             'Ваш аккаунт ещё не одобрен администрацией.'
         );
+
     }
 
 
-    // Запрос на повышение доступен обычным бойцам.
-
     if (profile.role !== 'user') {
+
         throw new Error(
             'Запрос нового звания доступен обычным бойцам.'
         );
+
     }
 
 
-    // Проверяем звание и уровень.
+    // Обязательный позывной.
+
+    if (
+        typeof profile.callsign !== 'string' ||
+        profile.callsign.trim().length < 2 ||
+        profile.callsign.trim().length > 30
+    ) {
+
+        throw new Error(
+            'Для подачи запроса необходимо заполнить позывной в профиле.'
+        );
+
+    }
+
 
     if (
         typeof profile.rank !== 'string' ||
@@ -207,32 +244,15 @@ async function getCurrentProfile(user) {
     }
 
 
-    // Проверяем наличие позывного.
-
-    if (
-        typeof profile.callsign !== 'string' ||
-        profile.callsign.trim().length < 2 ||
-        profile.callsign.trim().length > 30
-    ) {
-
-        throw new Error(
-            'Для подачи рапорта необходимо заполнить позывной в профиле.'
-        );
-
-    }
-
-
-    // Проверяем номер бойца.
-
-    const soldierNumber = getSoldierNumber(profile, user);
-
-
     return {
+
         ...profile,
 
-        soldierNumber: soldierNumber,
+        soldierNumber:
+            getSoldierNumber(profile, user),
 
-        callsign: profile.callsign.trim()
+        callsign:
+            profile.callsign.trim()
 
     };
 
@@ -245,42 +265,44 @@ async function getCurrentProfile(user) {
 
 function renderCurrentProfile(profile) {
 
-    if (!currentRankInfo) return;
+    if (currentRankInfo) {
 
-    currentRankInfo.innerHTML = `
+        currentRankInfo.innerHTML = `
 
-        <p>
-            <strong>Номер:</strong>
-            ${escapeHtml(profile.soldierNumber)}
-        </p>
+            <p>
+                <strong>Номер:</strong>
+                ${escapeHtml(profile.soldierNumber)}
+            </p>
 
-        <p>
-            <strong>Позывной:</strong>
-            ${escapeHtml(profile.callsign)}
-        </p>
+            <p>
+                <strong>Позывной:</strong>
+                ${escapeHtml(profile.callsign)}
+            </p>
 
-        <p>
-            <strong>Текущее звание:</strong>
-            ${escapeHtml(profile.rank)}
-        </p>
+            <p>
+                <strong>Текущее звание:</strong>
+                ${escapeHtml(profile.rank)}
+            </p>
 
-        <p>
-            <strong>Уровень доступа:</strong>
-            ${profile.accessLevel}
-        </p>
+            <p>
+                <strong>Уровень доступа:</strong>
+                ${profile.accessLevel}
+            </p>
 
-    `;
+        `;
+
+    }
 
 
-    // Поле "Докладывает" содержит только позывной.
-    // Номер и звание будут указаны отдельно в рапорте.
+    // В поле «Докладывает» указываем:
+    // номер | позывной.
+    //
+    // Звание остаётся отдельным полем в Discord Embed.
 
     if (reportingInput) {
 
         reportingInput.value =
-    `${profile.soldierNumber} | ${profile.callsign} | ${profile.rank}`;
-
-reportingInput.readOnly = true;
+            `${profile.soldierNumber} | ${profile.callsign}`;
 
         reportingInput.readOnly = true;
 
@@ -299,21 +321,29 @@ function renderRankOptions(profile) {
         item => item.name === profile.rank
     );
 
-    const select = document.getElementById('requestedRank');
+    const select =
+        document.getElementById('requestedRank');
 
     if (!select) {
+
         throw new Error(
-            'Не найдено поле выбора запрашиваемого звания.'
+            'Не найдено поле выбора нового звания.'
         );
+
     }
 
     if (currentIndex === -1) {
+
         throw new Error(
             'Текущее звание отсутствует в справочнике.'
         );
+
     }
 
-    const higherRanks = ALL_RANKS.slice(currentIndex + 1);
+
+    const higherRanks =
+        ALL_RANKS.slice(currentIndex + 1);
+
 
     if (!higherRanks.length) {
 
@@ -326,12 +356,19 @@ function renderRankOptions(profile) {
 
     }
 
+
     select.innerHTML =
+
         '<option value="">Выберите новое звание</option>' +
 
-        higherRanks.map(item =>
-            `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)} — уровень ${item.level}</option>`
-        ).join('');
+        higherRanks.map(item => `
+
+            <option value="${escapeHtml(item.name)}">
+                ${escapeHtml(item.name)} — уровень ${item.level}
+            </option>
+
+        `).join('');
+
 
     select.disabled = false;
 
@@ -351,9 +388,11 @@ async function checkPendingRequest(user) {
         .where('userId', '==', user.uid)
         .get();
 
+
     const pending = snapshot.docs.find(
         doc => doc.data().status === 'pending'
     );
+
 
     if (!pending) {
 
@@ -365,11 +404,13 @@ async function checkPendingRequest(user) {
 
     }
 
+
     const request = pending.data();
 
     promotionForm.style.display = 'none';
 
     rankRequestState.style.display = 'block';
+
 
     rankRequestState.innerHTML = `
 
@@ -424,40 +465,33 @@ async function checkPendingRequest(user) {
 
 auth.onAuthStateChanged(async user => {
 
+    currentUser = user;
+
+    promotionForm.style.display = 'none';
+
     if (!user) {
 
-        window.location.href = '../login/login.html';
+        window.location.href =
+            '../login/login.html';
 
         return;
 
     }
 
-    currentUser = user;
-
-    promotionForm.style.display = 'none';
 
     try {
 
-        // Загружаем актуальный профиль из Firestore.
+        currentProfile =
+            await getCurrentProfile(user);
 
-        const profile = await getCurrentProfile(user);
-
-        currentProfile = profile;
-
-
-        // Отображаем номер, позывной и звание.
-
-        renderCurrentProfile(profile);
+        renderCurrentProfile(currentProfile);
 
 
-        // Формируем список доступных званий.
+        const hasHigherRanks =
+            renderRankOptions(currentProfile);
 
-        const hasHigherRanks = renderRankOptions(profile);
-
-
-        // Проверяем существующие заявки.
-
-        const hasPending = await checkPendingRequest(user);
+        const hasPending =
+            await checkPendingRequest(user);
 
 
         if (!hasHigherRanks) {
@@ -477,11 +511,30 @@ auth.onAuthStateChanged(async user => {
 
     } catch (error) {
 
+        console.error(
+            'Ошибка загрузки профиля:',
+            error
+        );
+
         promotionForm.style.display = 'none';
 
         rankRequestState.style.display = 'none';
 
         showStatus(error.message, 'error');
+
+
+        if (
+            error.message.toLowerCase().includes('позывной')
+        ) {
+
+            setTimeout(() => {
+
+                window.location.href =
+                    '../dashboard/index.html';
+
+            }, 2500);
+
+        }
 
     }
 
@@ -541,16 +594,21 @@ promotionForm.addEventListener('submit', async event => {
 
     try {
 
-        // --------------------------------------------------
-        // ПОЛУЧАЕМ АКТУАЛЬНЫЕ ДАННЫЕ ПРОФИЛЯ
-        // --------------------------------------------------
+        // ==========================================
+        // 1. ПОЛУЧАЕМ АКТУАЛЬНЫЙ ПРОФИЛЬ
+        // ==========================================
 
-        const profile = await getCurrentProfile(user);
+        const profile =
+            await getCurrentProfile(user);
 
         currentProfile = profile;
 
         renderCurrentProfile(profile);
 
+
+        // ==========================================
+        // 2. ПОЛУЧАЕМ ДАННЫЕ ФОРМЫ
+        // ==========================================
 
         const requestedRank =
             document.getElementById('requestedRank').value;
@@ -558,10 +616,6 @@ promotionForm.addEventListener('submit', async event => {
         const reason =
             document.getElementById('requestReason').value.trim();
 
-
-        // --------------------------------------------------
-        // ОПРЕДЕЛЯЕМ ЗАПРАШИВАЕМОЕ ЗВАНИЕ
-        // --------------------------------------------------
 
         const requested = ALL_RANKS.find(
             item => item.name === requestedRank
@@ -606,9 +660,9 @@ promotionForm.addEventListener('submit', async event => {
         }
 
 
-        // --------------------------------------------------
-        // ПРОВЕРЯЕМ НАЛИЧИЕ ДРУГОЙ ОЖИДАЮЩЕЙ ЗАЯВКИ
-        // --------------------------------------------------
+        // ==========================================
+        // 3. ПРОВЕРЯЕМ НАЛИЧИЕ ДРУГОГО ЗАПРОСА
+        // ==========================================
 
         const existing = await db
             .collection('rankRequests')
@@ -629,29 +683,35 @@ promotionForm.addEventListener('submit', async event => {
         }
 
 
-        // --------------------------------------------------
-        // ПОДГОТАВЛИВАЕМ ДАННЫЕ БОЙЦА
-        // --------------------------------------------------
+        // ==========================================
+        // 4. ФОРМИРУЕМ СЛУЖЕБНЫЕ ДАННЫЕ
+        // ==========================================
 
-        const soldierNumber = profile.soldierNumber;
+        const soldierNumber =
+            profile.soldierNumber;
 
-        const callsign = profile.callsign;
+        const callsign =
+            profile.callsign;
 
-        const currentRank = profile.rank;
+        const currentRank =
+            profile.rank;
 
-        const currentAccessLevel = profile.accessLevel;
+        const currentAccessLevel =
+            profile.accessLevel;
 
 
-        // В поле reporting сохраняем только позывной.
-        // Никакого текста "Боец №" здесь нет.
+        // В запросе на повышение «Докладывает»
+        // содержит только номер и позывной.
+        //
+        // Текущее звание выводится отдельным полем Discord.
 
         const reporting =
-    `${soldierNumber} | ${callsign} | ${currentRank}`;
+            `${soldierNumber} | ${callsign}`;
 
 
-        // --------------------------------------------------
-        // ПОДГОТОВКА ДОКУМЕНТОВ
-        // --------------------------------------------------
+        // ==========================================
+        // 5. СРОК ОТОБРАЖЕНИЯ РАПОРТА
+        // ==========================================
 
         const expiresAt = new Date();
 
@@ -659,6 +719,10 @@ promotionForm.addEventListener('submit', async event => {
             expiresAt.getDate() + 3
         );
 
+
+        // ==========================================
+        // 6. ПОДГОТАВЛИВАЕМ ДОКУМЕНТЫ
+        // ==========================================
 
         reportRef = db
             .collection('reports')
@@ -669,13 +733,9 @@ promotionForm.addEventListener('submit', async event => {
             .doc();
 
 
-        // --------------------------------------------------
-        // ДАННЫЕ РАПОРТА
-        // --------------------------------------------------
-
         const formData = {
 
-            // Номер, позывной и звание хранятся отдельно.
+            // Данные автора.
 
             soldierNumber: soldierNumber,
 
@@ -683,30 +743,28 @@ promotionForm.addEventListener('submit', async event => {
 
             reporting: reporting,
 
-            authorRank: currentRank,
 
-            accessLevel: currentAccessLevel,
-
-
-            // Информация о запросе.
+            // Данные запроса.
 
             requestedRank: requestedRank,
 
-            formType: "Запрос на повышение",
+            formType: 'Запрос на повышение',
+
+            authorRank: currentRank,
+
+            accessLevel: currentAccessLevel,
 
             rankRequestId: requestRef.id
 
         };
 
 
-        // --------------------------------------------------
-        // СОХРАНЕНИЕ В FIRESTORE
-        // --------------------------------------------------
+        // ==========================================
+        // 7. СОХРАНЯЕМ ДАННЫЕ В FIRESTORE
+        // ==========================================
 
         const batch = db.batch();
 
-
-        // Документ рапорта.
 
         batch.set(reportRef, {
 
@@ -720,7 +778,7 @@ promotionForm.addEventListener('submit', async event => {
             expires_at:
                 firebase.firestore.Timestamp.fromDate(expiresAt),
 
-            discordSyncStatus: "pending",
+            discordSyncStatus: 'pending',
 
             discordSyncError: null,
 
@@ -729,11 +787,6 @@ promotionForm.addEventListener('submit', async event => {
 
         });
 
-
-        // Документ запроса на повышение.
-
-        // Поля rankRequests соответствуют текущим
-        // разрешениям firestore.rules.
 
         batch.set(requestRef, {
 
@@ -755,7 +808,7 @@ promotionForm.addEventListener('submit', async event => {
 
             reportId: reportRef.id,
 
-            status: "pending",
+            status: 'pending',
 
             createdAt:
                 firebase.firestore.FieldValue.serverTimestamp()
@@ -773,44 +826,46 @@ promotionForm.addEventListener('submit', async event => {
         );
 
 
-        // --------------------------------------------------
-        // ФОРМИРОВАНИЕ DISCORD EMBED
-        // --------------------------------------------------
+        // ==========================================
+        // 8. ФОРМИРУЕМ DISCORD EMBED
+        // ==========================================
 
         const payload = {
 
-            username: "Канцелярия 41-го ЭРК",
+            username: 'Канцелярия 41-го ЭРК',
 
             embeds: [
 
                 {
 
-                    title: "Форма рапорта запроса на проверку готовности к повышению",
+                    title: 'Форма рапорта запроса на проверку готовности к повышению',
 
                     color: 3096367,
 
                     fields: [
 
                         {
-                            name: "Докладывает:",
-                            value: `\`${callsign}\``,
+                            name: 'Докладывает:',
+                            value: `\`${reporting}\``,
                             inline: false
                         },
 
+                        // Эти поля оставлены без изменений.
+
                         {
-                            name: "Номер:",
+                            name: 'Номер:',
                             value: `\`${soldierNumber}\``,
                             inline: true
                         },
 
                         {
-                            name: "Текущее звание:",
+                            name: 'Текущее звание:',
                             value: `\`${currentRank}\``,
                             inline: true
                         },
 
                         {
-                            name: "Запрашиваю проверку на повышение в звании:",
+                            name: 'Запрашиваю проверку на повышение в звании',
                             value: `**${requestedRank}**`,
                             inline: false
                         }
@@ -826,13 +881,14 @@ promotionForm.addEventListener('submit', async event => {
         };
 
 
-        // --------------------------------------------------
-        // ОТПРАВКА В DISCORD
-        // --------------------------------------------------
+        // ==========================================
+        // 9. ОТПРАВЛЯЕМ В DISCORD
+        // ==========================================
 
         const response = await fetch(
             `${PROMOTION_WEBHOOK_URL}?wait=true`,
             {
+
                 method: 'POST',
 
                 headers: {
@@ -840,6 +896,7 @@ promotionForm.addEventListener('submit', async event => {
                 },
 
                 body: JSON.stringify(payload)
+
             }
         );
 
@@ -854,18 +911,26 @@ promotionForm.addEventListener('submit', async event => {
                 ? JSON.parse(responseText)
                 : {};
 
-        } catch (_) {}
+        } catch (parseError) {
+
+            discordResult = {};
+
+        }
 
 
         if (!response.ok) {
 
             throw new Error(
-                `Discord HTTP ${response.status}: ${
+
+                `Discord HTTP ${response.status}: ` +
+
+                (
                     discordResult.message ||
                     discordResult.error ||
                     responseText ||
                     'Ошибка Discord'
-                }`
+                )
+
             );
 
         }
@@ -886,15 +951,15 @@ promotionForm.addEventListener('submit', async event => {
         createdMessageId = discordResult.id;
 
 
-        // --------------------------------------------------
-        // ОБНОВЛЕНИЕ СТАТУСА СИНХРОНИЗАЦИИ
-        // --------------------------------------------------
+        // ==========================================
+        // 10. ОБНОВЛЯЕМ СТАТУС СИНХРОНИЗАЦИИ
+        // ==========================================
 
         await reportRef.update({
 
             discordMessageId: createdMessageId,
 
-            discordSyncStatus: "synced",
+            discordSyncStatus: 'synced',
 
             discordSyncError:
                 firebase.firestore.FieldValue.delete(),
@@ -908,18 +973,16 @@ promotionForm.addEventListener('submit', async event => {
         });
 
 
-        // --------------------------------------------------
-        // ЗАВЕРШЕНИЕ
-        // --------------------------------------------------
+        // ==========================================
+        // 11. ЗАВЕРШЕНИЕ
+        // ==========================================
 
         showStatus(
             'Запрос отправлен администрации. Ожидайте решения.',
             'success'
         );
 
-
         promotionForm.reset();
-
 
         await checkPendingRequest(user);
 
@@ -932,9 +995,9 @@ promotionForm.addEventListener('submit', async event => {
         );
 
 
-        // --------------------------------------------------
-        // СОХРАНЕНИЕ ОШИБКИ СИНХРОНИЗАЦИИ DISCORD
-        // --------------------------------------------------
+        // ==========================================
+        // СОХРАНЯЕМ ОШИБКУ СИНХРОНИЗАЦИИ
+        // ==========================================
 
         if (reportRef && firestoreSaved) {
 
@@ -942,7 +1005,7 @@ promotionForm.addEventListener('submit', async event => {
 
                 const failedData = {
 
-                    discordSyncStatus: "failed",
+                    discordSyncStatus: 'failed',
 
                     discordSyncError:
                         String(error.message).slice(0, 1000),
@@ -952,17 +1015,11 @@ promotionForm.addEventListener('submit', async event => {
 
                 };
 
-
                 if (createdMessageId) {
-
-                    failedData.discordMessageId =
-                        createdMessageId;
-
+                    failedData.discordMessageId = createdMessageId;
                 }
 
-
                 await reportRef.update(failedData);
-
 
             } catch (statusError) {
 
@@ -976,15 +1033,22 @@ promotionForm.addEventListener('submit', async event => {
         }
 
 
-        // --------------------------------------------------
-        // ЕСЛИ FIRESTORE УЖЕ СОХРАНИЛ ЗАПРОС
-        // --------------------------------------------------
-
         if (firestoreSaved) {
 
             promotionForm.reset();
 
-            await checkPendingRequest(user);
+            try {
+
+                await checkPendingRequest(user);
+
+            } catch (requestError) {
+
+                console.error(
+                    'Не удалось обновить состояние запроса:',
+                    requestError
+                );
+
+            }
 
 
             const warning =
@@ -1026,13 +1090,31 @@ promotionForm.addEventListener('submit', async event => {
 // ВЫХОД ИЗ АККАУНТА
 // ======================================================
 
-document.getElementById('logoutBtn').addEventListener(
-    'click',
-    async () => {
+const logoutBtn =
+    document.getElementById('logoutBtn');
 
-        await auth.signOut();
+if (logoutBtn) {
 
-        window.location.href = '../login/login.html';
+    logoutBtn.addEventListener('click', async () => {
 
-    }
-);
+        try {
+
+            await auth.signOut();
+
+            window.location.href =
+                '../login/login.html';
+
+        } catch (error) {
+
+            console.error(
+                'Ошибка выхода:',
+                error
+            );
+
+            alert('Не удалось выйти из аккаунта.');
+
+        }
+
+    });
+
+}
