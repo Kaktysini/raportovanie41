@@ -1,21 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Администрация | 41-й ЭРК</title>
-
     <link rel="stylesheet" href="../css/style.css">
 
-    <style>
+<style>
         .admin-container {
             max-width: 1100px;
             margin: 30px auto;
         }
 
-        .admin-top {
+.admin-top {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -23,14 +20,14 @@
             flex-wrap: wrap;
         }
 
-        .admin-tabs {
+.admin-tabs {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
             margin: 25px 0;
         }
 
-        .admin-tab {
+.admin-tab {
             padding: 12px 20px;
             background: #252a27;
             color: #f3f4f6;
@@ -39,33 +36,33 @@
             border-radius: 4px;
         }
 
-        .admin-tab.active {
+.admin-tab.active {
             background: #315c3a;
             border-color: #4caf50;
         }
 
-        .admin-section {
+.admin-section {
             display: none;
         }
 
-        .admin-section.active {
+.admin-section.active {
             display: block;
         }
 
-        .admin-list {
+.admin-list {
             display: flex;
             flex-direction: column;
             gap: 15px;
         }
 
-        .admin-card {
+.admin-card {
             background: #1e221f;
             border: 1px solid #374151;
             border-radius: 6px;
             padding: 20px;
         }
 
-        .admin-card-header {
+.admin-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -76,28 +73,29 @@
             margin-bottom: 15px;
         }
 
-        .admin-card h3 {
+.admin-card h3 {
             margin: 0;
             color: #f3f4f6;
         }
 
-        .admin-meta {
+.admin-meta {
             color: #9ca3af;
             font-size: 14px;
             line-height: 1.7;
+            overflow-wrap: anywhere;
         }
 
-        .admin-field {
+.admin-field {
             margin-top: 15px;
         }
 
-        .admin-field label {
+.admin-field label {
             display: block;
             color: #d1d5db;
             margin-bottom: 7px;
         }
 
-        .admin-select,
+.admin-select,
         .admin-search {
             width: 100%;
             max-width: 500px;
@@ -108,14 +106,14 @@
             border-radius: 4px;
         }
 
-        .admin-actions {
+.admin-actions {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 15px;
         }
 
-        .admin-button {
+.admin-button {
             padding: 10px 17px;
             border: none;
             border-radius: 4px;
@@ -123,27 +121,27 @@
             font-weight: bold;
         }
 
-        .admin-button:disabled {
+.admin-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
 
-        .admin-approve {
+.admin-approve {
             background: #27663a;
             color: white;
         }
 
-        .admin-reject {
+.admin-reject {
             background: #8b2929;
             color: white;
         }
 
-        .admin-save {
+.admin-save {
             background: #315c3a;
             color: white;
         }
 
-        .admin-status {
+.admin-status {
             padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
@@ -151,7 +149,7 @@
             color: #e5e7eb;
         }
 
-        .admin-empty {
+.admin-empty {
             color: #9ca3af;
             background: #1e221f;
             padding: 25px;
@@ -159,7 +157,7 @@
             text-align: center;
         }
 
-        .admin-message {
+.admin-message {
             margin: 15px 0;
             padding: 12px;
             border-radius: 4px;
@@ -167,33 +165,44 @@
             color: #e5e7eb;
         }
 
-        .admin-search-wrapper {
+.admin-search-wrapper {
             margin-bottom: 20px;
         }
 
-        .admin-back {
+.admin-back {
             display: inline-block;
             color: #4caf50;
             text-decoration: none;
             margin-right: 15px;
         }
 
-        .admin-small-note {
+.admin-small-note {
             color: #9ca3af;
             font-size: 12px;
             margin-top: 7px;
         }
 
-        @media (max-width: 600px) {
+.request-reason {
+            background: #111312;
+            border: 1px solid #374151;
+            padding: 12px;
+            border-radius: 4px;
+            margin-top: 12px;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            color: #e5e7eb;
+        }
+
+@media (max-width: 600px) {
             .admin-card {
                 padding: 14px;
             }
 
-            .admin-tabs {
+.admin-tabs {
                 flex-direction: column;
             }
 
-            .admin-tab {
+.admin-tab {
                 width: 100%;
             }
         }
@@ -209,76 +218,77 @@
     </div>
 </header>
 
-
 <main class="report-form-container admin-container">
 
     <div class="admin-top">
 
-        <div>
+<div>
             <a href="../dashboard/index.html" class="admin-back">
                 🏠 Главное меню
             </a>
 
-            <button id="logoutBtn" class="btn-logout">
+<button id="logoutBtn" class="btn-logout">
                 Выйти
             </button>
         </div>
 
-        <div>
+<div>
             <strong id="adminIdentity">Проверка доступа...</strong>
         </div>
 
     </div>
 
-
-    <h2 style="margin-top: 30px;">
+<h2 style="margin-top: 30px;">
         Управление составом 41-го ЭРК
     </h2>
 
-    <div id="adminMessage" class="admin-message">
+<div id="adminMessage" class="admin-message">
         Загрузка административной панели...
     </div>
 
-
     <div class="admin-tabs">
 
-        <button
+<button
             type="button"
             class="admin-tab active"
             data-tab="pending"
-            id="pendingTab"
         >
             Заявки на регистрацию
             (<span id="pendingCount">0</span>)
         </button>
 
-        <button
+<button
+            type="button"
+            class="admin-tab"
+            data-tab="rankRequests"
+        >
+            Запросы на повышение
+            (<span id="rankRequestsCount">0</span>)
+        </button>
+
+<button
             type="button"
             class="admin-tab"
             data-tab="users"
-            id="usersTab"
         >
             Все пользователи
         </button>
 
     </div>
 
-
-    <!-- =========================================== -->
     <!-- ЗАЯВКИ НА РЕГИСТРАЦИЮ -->
-    <!-- =========================================== -->
 
     <section id="pendingPanel" class="admin-section active">
 
-        <h3 class="section-title">
+<h3 class="section-title">
             Ожидают одобрения
         </h3>
 
-        <p class="admin-meta">
+<p class="admin-meta">
             Назначьте звание пользователю, после чего сможете одобрить заявку.
         </p>
 
-        <div id="pendingList" class="admin-list">
+<div id="pendingList" class="admin-list">
             <div class="admin-empty">
                 Загрузка заявок...
             </div>
@@ -286,20 +296,37 @@
 
     </section>
 
+    <!-- ЗАПРОСЫ НА ПОВЫШЕНИЕ -->
 
-    <!-- =========================================== -->
+    <section id="rankRequestsPanel" class="admin-section">
+
+<h3 class="section-title">
+            Запросы бойцов на получение нового звания
+        </h3>
+
+<p class="admin-meta">
+            При одобрении заявки звание и уровень доступа бойца изменятся автоматически.
+        </p>
+
+<div id="rankRequestsList" class="admin-list">
+            <div class="admin-empty">
+                Загрузка запросов...
+            </div>
+        </div>
+
+    </section>
+
     <!-- ВСЕ ПОЛЬЗОВАТЕЛИ -->
-    <!-- =========================================== -->
 
     <section id="usersPanel" class="admin-section">
 
-        <h3 class="section-title">
+<h3 class="section-title">
             Зарегистрированные пользователи
         </h3>
 
         <div class="admin-search-wrapper">
 
-            <input
+<input
                 type="text"
                 id="usersSearch"
                 class="admin-search"
@@ -308,7 +335,7 @@
 
         </div>
 
-        <div id="usersList" class="admin-list">
+<div id="usersList" class="admin-list">
             <div class="admin-empty">
                 Загрузка пользователей...
             </div>
@@ -318,10 +345,14 @@
 
 </main>
 
-
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+
+
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
+
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
 
 <script src="admin.js"></script>
 
