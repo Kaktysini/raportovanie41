@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Авторизация 41-й ЭРК</title>
-    <!-- Выходим из папки login в корень и заходим в css -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
@@ -23,28 +24,47 @@
         <form id="authForm">
             <div class="form-group">
                 <label for="soldierNumber">Номер бойца *</label>
-                <input type="text" id="soldierNumber" placeholder="Например: 12345" required>
+                <input
+                    type="text"
+                    id="soldierNumber"
+                    placeholder="Например: 12345"
+                    required
+                >
             </div>
 
             <div class="form-group">
                 <label for="password">Пароль *</label>
-                <input type="password" id="password" placeholder="Минимум 6 символов" required>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Минимум 6 символов"
+                    required
+                >
             </div>
 
             <div class="form-actions" style="flex-direction: column;">
-                <button type="submit" class="btn-submit" id="authBtn">ВОЙТИ</button>
-                <button type="button" class="btn-reset" id="toggleAuthBtn" style="margin-top: 10px;">
-                    У меня нет аккаунта (Зарегистрироваться)
+                <button type="submit" class="btn-submit" id="authBtn">
+                    ВОЙТИ
+                </button>
+
+                <button
+                    type="button"
+                    class="btn-reset"
+                    id="toggleAuthBtn"
+                    style="margin-top: 10px;"
+                >
+                    У меня нет аккаунта
                 </button>
             </div>
-            
+
             <div id="authStatus" class="form-status"></div>
         </form>
     </main>
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <!-- auth.js лежит в той же папке, поэтому путь не меняется -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
     <script src="auth.js"></script>
 </body>
 </html>
