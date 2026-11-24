@@ -2,61 +2,158 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Теоретическая тренировка | 41-й ЭРК</title>
     <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
+
     <header class="site-header">
         <div class="logo-container">
+
             <h1>41-Й ЭЛИТНЫЙ РАЗВЕДЫВАТЕЛЬНЫЙ КОРПУС</h1>
+
             <p>ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА</p>
+
             <div style="margin-top: 10px;">
-                <a href="../dashboard/index.html" class="form-select-btn" style="display: inline-flex; width: auto; padding: 5px 15px; font-size: 12px;">🏠 Главное меню</a>
+
+                <a
+                    href="../dashboard/index.html"
+                    class="form-select-btn"
+                    style="display: inline-flex; width: auto; padding: 5px 15px; font-size: 12px;"
+                >
+                    🏠 Главное меню
+                </a>
+
             </div>
+
         </div>
     </header>
 
+
     <main class="report-form-container">
+
         <div class="form-header">
-            <h2>Форма рапорта о Теоретической тренировке</h2>
+            <h2>Форма рапорта о теоретической тренировке</h2>
         </div>
 
+
         <form id="theoryForm">
-            <div class="form-group">
-                <label for="reporting">Докладывает *</label>
-                <input type="text" id="reporting" placeholder="Номер | Позывной | Звание" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="trainingName">Название тренировки *</label>
-                <input type="text" id="trainingName" placeholder="Название" required>
-            </div>
 
             <div class="form-group">
-                <label for="participants">Состав и оценки * (Каждый с новой строки)</label>
-                <textarea id="participants" rows="4" placeholder="Номер | Позывной | Звание — Оценка: [0/5]" required style="width: 100%; padding: 12px; background: #111312; color: #f3f4f6; border: 1px solid #374151; font-family: 'Consolas', monospace; border-radius: 4px;"></textarea>
+
+                <label for="reporting">
+                    Докладывает *
+                </label>
+
+                <input
+                    type="text"
+                    id="reporting"
+                    placeholder="Номер | Позывной | Звание"
+                    autocomplete="off"
+                    readonly
+                    required
+                >
+
+                <small style="color: #9ca3af;">
+                    Данные автоматически загружаются из вашего профиля.
+                </small>
+
             </div>
 
-            <div class="form-group">
-                <label for="notes">Примечание</label>
-                <textarea id="notes" rows="2" placeholder="Пишется при необходимости" style="width: 100%; padding: 12px; background: #111312; color: #f3f4f6; border: 1px solid #374151; font-family: 'Consolas', monospace; border-radius: 4px;"></textarea>
-            </div>
 
             <div class="form-group">
-                <label for="reportDate">Дата *</label>
-                <input type="date" id="reportDate" required>
+
+                <label for="trainingName">
+                    Название тренировки *
+                </label>
+
+                <input
+                    type="text"
+                    id="trainingName"
+                    placeholder="Название"
+                    required
+                >
+
             </div>
+
+
+            <div class="form-group">
+
+                <label for="participants">
+                    Состав и оценки * (Каждый с новой строки)
+                </label>
+
+                <textarea
+                    id="participants"
+                    rows="4"
+                    placeholder="Номер | Позывной | Звание — Оценка: [0/5]"
+                    required
+                    style="width: 100%; padding: 12px; background: #111312; color: #f3f4f6; border: 1px solid #374151; font-family: 'Consolas', monospace; border-radius: 4px;"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="notes">
+                    Примечание
+                </label>
+
+                <textarea
+                    id="notes"
+                    rows="2"
+                    placeholder="Пишется при необходимости"
+                    style="width: 100%; padding: 12px; background: #111312; color: #f3f4f6; border: 1px solid #374151; font-family: 'Consolas', monospace; border-radius: 4px;"
+                ></textarea>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="reportDate">
+                    Дата *
+                </label>
+
+                <input
+                    type="date"
+                    id="reportDate"
+                    required
+                >
+
+            </div>
+
 
             <div class="form-actions">
-                <button type="submit" class="btn-submit">ОТПРАВИТЬ</button>
+
+                <button
+                    type="submit"
+                    class="btn-submit"
+                    disabled
+                >
+                    ОТПРАВИТЬ
+                </button>
+
             </div>
-            <div id="formStatus" class="form-status"></div>
+
+
+            <div
+                id="formStatus"
+                class="form-status"
+            ></div>
+
         </form>
+
     </main>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
     <script src="theory.js"></script>
+
 </body>
 </html>
