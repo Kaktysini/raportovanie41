@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -6,8 +5,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Главное меню | 41-й ЭРК</title>
     <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+
+        .profile-info-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 12px;
+            min-width: 0;
+        }
+
+        .profile-info-label {
+            display: block;
+            color: #9ca3af;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .profile-info-value {
+            display: block;
+            color: #f3f4f6;
+            font-weight: 600;
+            overflow-wrap: anywhere;
+        }
+
+        .profile-section-title {
+            color: #f3f4f6;
+            margin: 24px 0 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .profile-input {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 12px;
+            margin-top: 8px;
+            background: #171717;
+            color: #f3f4f6;
+            border: 1px solid #4b5563;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+
+        .profile-input:focus {
+            outline: none;
+            border-color: #4caf50;
+        }
+
+        .profile-help {
+            color: #9ca3af;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-top: 8px;
+        }
+
+        .profile-warning {
+            display: none;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid rgba(255, 170, 0, 0.4);
+            background: rgba(255, 170, 0, 0.08);
+            color: #ffd080;
+            border-radius: 6px;
+            line-height: 1.5;
+        }
+
+        .profile-save-status {
+            min-height: 22px;
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+
+        .profile-notifications {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-notification {
+            padding: 13px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .profile-notification.unread {
+            border-left: 3px solid #4caf50;
+            background: rgba(76, 175, 80, 0.07);
+        }
+
+        .profile-notification-title {
+            color: #f3f4f6;
+            font-weight: 700;
+            margin-bottom: 7px;
+        }
+
+        .profile-notification-message {
+            color: #d1d5db;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .profile-notification-date {
+            display: block;
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin-top: 9px;
+        }
+
+        .profile-notification-actions {
+            margin-top: 10px;
+        }
+
+        .profile-notification-read {
+            border: 1px solid #4caf50;
+            border-radius: 5px;
+            background: transparent;
+            color: #9be7a0;
+            padding: 7px 10px;
+            cursor: pointer;
+        }
+
+        .profile-notification-read:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .notification-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 21px;
+            height: 21px;
+            margin-left: 7px;
+            padding: 0 5px;
+            border-radius: 12px;
+            background: #a32626;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            vertical-align: middle;
+            box-sizing: border-box;
+        }
+
+        .notification-badge[hidden] {
+            display: none;
+        }
+
+        .profile-empty {
+            color: #9ca3af;
+            padding: 14px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+        }
+
+        .profile-card-button {
+            color: inherit;
+            font: inherit;
+            text-align: left;
+        }
+
+        .profile-card-button:focus-visible {
+            outline: 2px solid #4caf50;
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 600px) {
+            .profile-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-menu-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .profile-modal-content {
+                width: calc(100% - 24px);
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+    </style>
 </head>
+
 <body>
+
     <header class="site-header">
         <div class="logo-container">
             <h1>41-Й ЭЛИТНЫЙ РАЗВЕДЫВАТЕЛЬНЫЙ КОРПУС</h1>
@@ -15,44 +207,113 @@
         </div>
     </header>
 
+
     <main class="report-form-container">
-        <div class="form-header" style="display: flex; justify-content: space-between; align-items: center;">
+
+        <div class="form-header" style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+
             <div>
                 <h2>Добро пожаловать!</h2>
+
                 <p>
                     Вы вошли как:
-                    <strong id="profileNumber" style="color: #4caf50; font-size: 1.2em;">
+
+                    <strong
+                        id="profileNumber"
+                        style="color: #4caf50; font-size: 1.2em;"
+                    >
                         Загрузка...
                     </strong>
                 </p>
             </div>
 
-            <button id="logoutBtn" class="btn-logout">Выйти</button>
+            <button id="logoutBtn" class="btn-logout">
+                Выйти
+            </button>
+
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
 
-            <div class="menu-card" onclick="openFormModal()" style="cursor: pointer;">
+        <div
+            id="callsignAccessWarning"
+            class="profile-warning"
+            style="display: none;"
+        >
+            Для доступа к рапортам необходимо заполнить позывной в профиле.
+        </div>
+
+
+        <div
+            class="dashboard-menu-grid"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;"
+        >
+
+            <div
+                class="menu-card"
+                id="createReportsCard"
+                onclick="openFormModal()"
+                style="cursor: pointer;"
+            >
                 <h3>📝 Подать рапорт</h3>
                 <p>Создать новый рапорт (выбор формы).</p>
             </div>
 
-            <a href="../edit/edit.html" class="menu-card">
+
+            <a
+                href="../edit/edit.html"
+                class="menu-card"
+                id="myReportsCard"
+            >
                 <h3>📂 Мои рапорта</h3>
                 <p>Просмотр и редактирование активных рапортов.</p>
             </a>
 
-            <div class="menu-card" style="opacity: 0.5; cursor: not-allowed;">
+
+            <div
+                class="menu-card profile-card-button"
+                id="profileCard"
+                role="button"
+                tabindex="0"
+                onclick="openProfileModal()"
+            >
+                <h3>
+                    👤 Мой профиль
+
+                    <span
+                        id="notificationBadge"
+                        class="notification-badge"
+                        hidden
+                    >
+                        0
+                    </span>
+                </h3>
+
+                <p>
+                    Позывной, звание, данные бойца и уведомления администрации.
+                </p>
+            </div>
+
+
+            <div
+                class="menu-card"
+                style="opacity: 0.5; cursor: not-allowed;"
+            >
                 <h3>⚙️ Другие формы</h3>
                 <p>Раздел в разработке.</p>
             </div>
 
-            <div class="menu-card" style="opacity: 0.5; cursor: not-allowed;">
+
+            <div
+                class="menu-card"
+                style="opacity: 0.5; cursor: not-allowed;"
+            >
                 <h3>📊 Статистика</h3>
                 <p>Раздел в разработке.</p>
             </div>
 
+
             <!-- Карточка видна только администраторам -->
+
             <a
                 href="../admin/index.html"
                 class="menu-card"
@@ -60,18 +321,204 @@
                 style="display: none;"
             >
                 <h3>🛡️ Панель администрации</h3>
-                <p>Управление пользователями, регистрациями и уровнями доступа.</p>
+
+                <p>
+                    Управление пользователями, регистрациями и уровнями доступа.
+                </p>
             </a>
 
         </div>
+
     </main>
 
+
+    <!-- ================================================== -->
+    <!-- МОДАЛЬНОЕ ОКНО ПРОФИЛЯ -->
+    <!-- ================================================== -->
+
+    <div
+        id="profileModal"
+        class="modal-overlay"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profileModalTitle"
+    >
+
+        <div class="modal-content profile-modal-content">
+
+            <h2
+                id="profileModalTitle"
+                style="margin-top: 0; color: #f3f4f6;"
+            >
+                👤 Профиль бойца
+            </h2>
+
+
+            <div class="profile-info-grid">
+
+                <div class="profile-info-item">
+
+                    <span class="profile-info-label">
+                        Номер бойца
+                    </span>
+
+                    <strong
+                        class="profile-info-value"
+                        id="profileSoldierNumber"
+                    >
+                        Загрузка...
+                    </strong>
+
+                </div>
+
+
+                <div class="profile-info-item">
+
+                    <span class="profile-info-label">
+                        Текущее звание
+                    </span>
+
+                    <strong
+                        class="profile-info-value"
+                        id="profileRank"
+                    >
+                        Загрузка...
+                    </strong>
+
+                </div>
+
+
+                <div class="profile-info-item">
+
+                    <span class="profile-info-label">
+                        Уровень доступа
+                    </span>
+
+                    <strong
+                        class="profile-info-value"
+                        id="profileAccessLevel"
+                    >
+                        Загрузка...
+                    </strong>
+
+                </div>
+
+
+                <div class="profile-info-item">
+
+                    <span class="profile-info-label">
+                        Административная роль
+                    </span>
+
+                    <strong
+                        class="profile-info-value"
+                        id="profileRole"
+                    >
+                        Загрузка...
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <h3 class="profile-section-title">
+                Позывной
+            </h3>
+
+
+            <form id="profileForm">
+
+                <label
+                    for="callsignInput"
+                    style="color: #e5e7eb; font-weight: 600;"
+                >
+                    Укажите свой позывной:
+                </label>
+
+                <input
+                    type="text"
+                    id="callsignInput"
+                    class="profile-input"
+                    maxlength="30"
+                    minlength="2"
+                    placeholder="Введите позывной"
+                    autocomplete="off"
+                    required
+                >
+
+                <p class="profile-help">
+                    Позывной будет автоматически добавляться в ваши рапорты.
+                    Пока он не заполнен, доступ к созданию и редактированию
+                    рапортов закрыт.
+                </p>
+
+                <div
+                    id="profileSaveStatus"
+                    class="profile-save-status"
+                    aria-live="polite"
+                ></div>
+
+                <div class="form-actions">
+
+                    <button
+                        type="submit"
+                        class="btn-submit"
+                        id="saveProfileBtn"
+                    >
+                        СОХРАНИТЬ ПОЗЫВНОЙ
+                    </button>
+
+                </div>
+
+            </form>
+
+
+            <h3 class="profile-section-title">
+                Уведомления администрации
+            </h3>
+
+
+            <div
+                id="notificationsList"
+                class="profile-notifications"
+            >
+                <div class="profile-empty">
+                    Загрузка уведомлений...
+                </div>
+            </div>
+
+
+            <div
+                class="form-actions"
+                style="margin-top: 25px; border-top: none; padding-top: 0;"
+            >
+
+                <button
+                    type="button"
+                    class="btn-reset"
+                    onclick="closeProfileModal()"
+                    style="width: 100%;"
+                >
+                    ЗАКРЫТЬ ПРОФИЛЬ
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ================================================== -->
     <!-- МОДАЛЬНОЕ ОКНО ВЫБОРА ФОРМЫ -->
+    <!-- ================================================== -->
 
     <div id="formModal" class="modal-overlay">
+
         <div class="modal-content">
 
-            <h2 style="margin-top:0; color: #f3f4f6;">
+            <h2 style="margin-top: 0; color: #f3f4f6;">
                 Выберите форму рапорта
             </h2>
 
@@ -79,15 +526,24 @@
                 Доступные бланки для заполнения:
             </p>
 
+
             <div style="display: flex; flex-direction: column; gap: 10px;">
 
-                <a href="../report/index.html" class="form-select-btn">
+                <a
+                    href="../report/index.html"
+                    class="form-select-btn"
+                >
                     📄 Рапорт об изменении звания
                 </a>
 
-                <a href="../promotion/index.html" class="form-select-btn">
+
+                <a
+                    href="../promotion/index.html"
+                    class="form-select-btn"
+                >
                     📄 Запрос на проверку готовности к повышению
                 </a>
+
 
                 <button
                     type="button"
@@ -95,24 +551,45 @@
                     onclick="toggleTrainingMenu()"
                 >
                     <span>📄 Тренировки</span>
-                    <span id="trainingArrow" style="margin-left: auto; transition: transform 0.3s;">
+
+                    <span
+                        id="trainingArrow"
+                        style="margin-left: auto; transition: transform 0.3s;"
+                    >
                         ▼
                     </span>
                 </button>
 
-                <div id="trainingSubMenu" class="sub-menu">
-                    <a href="../training/practical.html" class="form-select-btn sub-btn">
+
+                <div
+                    id="trainingSubMenu"
+                    class="sub-menu"
+                >
+
+                    <a
+                        href="../training/practical.html"
+                        class="form-select-btn sub-btn"
+                    >
                         ➔ Практическая тренировка
                     </a>
 
-                    <a href="../training/theory.html" class="form-select-btn sub-btn">
+                    <a
+                        href="../training/theory.html"
+                        class="form-select-btn sub-btn"
+                    >
                         ➔ Теоретическая тренировка
                     </a>
+
                 </div>
 
             </div>
 
-            <div class="form-actions" style="margin-top: 25px; border-top: none; padding-top: 0;">
+
+            <div
+                class="form-actions"
+                style="margin-top: 25px; border-top: none; padding-top: 0;"
+            >
+
                 <button
                     type="button"
                     class="btn-reset"
@@ -121,15 +598,19 @@
                 >
                     ЗАКРЫТЬ
                 </button>
+
             </div>
 
         </div>
+
     </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 
     <script src="dashboard.js"></script>
+
 </body>
 </html>
