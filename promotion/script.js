@@ -277,7 +277,10 @@ function renderCurrentProfile(profile) {
 
     if (reportingInput) {
 
-        reportingInput.value = profile.callsign;
+        reportingInput.value =
+    `${profile.soldierNumber} | ${profile.callsign} | ${profile.rank}`;
+
+reportingInput.readOnly = true;
 
         reportingInput.readOnly = true;
 
@@ -642,7 +645,8 @@ promotionForm.addEventListener('submit', async event => {
         // В поле reporting сохраняем только позывной.
         // Никакого текста "Боец №" здесь нет.
 
-        const reporting = callsign;
+        const reporting =
+    `${soldierNumber} | ${callsign} | ${currentRank}`;
 
 
         // --------------------------------------------------
