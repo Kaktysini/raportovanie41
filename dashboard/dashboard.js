@@ -237,7 +237,7 @@ function renderProfile() {
 
     if (profileSoldierNumber) {
         profileSoldierNumber.textContent =
-            `Боец № ${soldierNumber}`;
+            String(soldierNumber);
     }
 
     if (profileRank) {
