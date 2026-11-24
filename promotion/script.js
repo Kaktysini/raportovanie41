@@ -853,12 +853,6 @@ promotionForm.addEventListener('submit', async event => {
                         // Эти поля оставлены без изменений.
 
                         {
-                            name: 'Номер:',
-                            value: `\`${soldierNumber}\``,
-                            inline: true
-                        },
-
-                        {
                             name: 'Текущее звание:',
                             value: `\`${currentRank}\``,
                             inline: true
