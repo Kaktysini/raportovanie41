@@ -21,18 +21,28 @@ const PROMOTION_WEBHOOK_URL =
 const TRAINING_WEBHOOK_URL =
     'https://erk-proxy.cotnow1000.workers.dev/training';
 
-const rankChangeList = document.getElementById('rankChangeList');
-const promotionList = document.getElementById('promotionList');
-const practicalList = document.getElementById('practicalList');
-const theoryList = document.getElementById('theoryList');
+
+const rankChangeList =
+    document.getElementById('rankChangeList');
+
+const promotionList =
+    document.getElementById('promotionList');
+
+const practicalList =
+    document.getElementById('practicalList');
+
+const theoryList =
+    document.getElementById('theoryList');
+
 
 let currentProfileData = null;
+
 const reportDataById = Object.create(null);
 
 
-// ==========================================
+// ======================================================
 // ПОЛУЧЕНИЕ И ПРОВЕРКА ПРОФИЛЯ
-// ==========================================
+// ======================================================
 
 async function getCurrentProfileData(user) {
 
@@ -48,7 +58,9 @@ async function getCurrentProfileData(user) {
     const profile = profileSnapshot.data();
 
     if (profile.status !== 'approved') {
-        throw new Error('Ваш аккаунт ещё не одобрен администрацией.');
+        throw new Error(
+            'Ваш аккаунт ещё не одобрен администрацией.'
+        );
     }
 
     if (
@@ -67,7 +79,11 @@ async function getCurrentProfileData(user) {
         typeof profile.soldierNumber === 'string' &&
         profile.soldierNumber.trim()
             ? profile.soldierNumber.trim()
-            : (user.email ? user.email.split('@')[0] : '');
+            : (
+                user.email
+                    ? user.email.split('@')[0]
+                    : ''
+            );
 
     if (!soldierNumber) {
         throw new Error('Не удалось определить номер бойца.');
@@ -95,38 +111,58 @@ async function getCurrentProfileData(user) {
     ) {
 
         throw new Error(
-            'В профиле не назначено корректное звание или уровень доступа. Обратитесь к администрации.'
+            'В профиле не назначено корректное звание или уровень доступа.'
         );
 
     }
 
     return {
+
         soldierNumber,
+
         callsign: profile.callsign.trim(),
+
         authorRank: authorRank.trim(),
+
         accessLevel
+
     };
 
 }
 
 
-function getIdentityString(profile) {
-
-    return `${profile.soldierNumber} | ${profile.callsign} | ${profile.authorRank}`;
-
-}
-
+// ======================================================
+// ПОЛУЧЕНИЕ СТРОКИ АВТОРА
+// ======================================================
 
 function getStoredReporting(data) {
+
+    // Для старых документов используем сохранённое значение,
+    // если оно уже содержит полные данные.
 
     if (
         typeof data.reporting === 'string' &&
         data.reporting.trim()
     ) {
 
+        // В старых запросах на повышение reporting мог
+        // содержать только позывной. Если рядом есть
+        // номер и позывной, строим новый формат.
+
+        if (
+            data.formType === 'Запрос на повышение' &&
+            data.soldierNumber &&
+            data.callsign
+        ) {
+
+            return `${data.soldierNumber} | ${data.callsign}`;
+
+        }
+
         return data.reporting;
 
     }
+
 
     if (
         data.soldierNumber ||
@@ -135,9 +171,11 @@ function getStoredReporting(data) {
     ) {
 
         return [
+
             data.soldierNumber,
             data.callsign,
             data.authorRank
+
         ]
             .filter(value =>
                 value !== undefined &&
@@ -155,32 +193,16 @@ function getStoredReporting(data) {
 
 function getStoredSoldierInfo(data) {
 
-    if (
-        typeof data.soldierInfo === 'string' &&
-        data.soldierInfo.trim()
-    ) {
-
-        return data.soldierInfo;
-
-    }
-
-    return [
-        data.soldierNumber,
-        data.callsign
-    ]
-        .filter(value =>
-            value !== undefined &&
-            value !== null &&
-            String(value).trim()
-        )
-        .join(' | ');
+    return typeof data.soldierInfo === 'string'
+        ? data.soldierInfo
+        : '';
 
 }
 
 
-// ==========================================
+// ======================================================
 // ВЫБОР WEBHOOK ПО ТИПУ РАПОРТА
-// ==========================================
+// ======================================================
 
 function getWebhookUrl(formType) {
 
@@ -202,9 +224,9 @@ function getWebhookUrl(formType) {
 }
 
 
-// ==========================================
+// ======================================================
 // ПРОВЕРКА СРОКА ДЕЙСТВИЯ РАПОРТА
-// ==========================================
+// ======================================================
 
 function isReportActive(data) {
 
@@ -222,9 +244,9 @@ function isReportActive(data) {
 }
 
 
-// ==========================================
+// ======================================================
 // ЭКРАНИРОВАНИЕ ТЕКСТА
-// ==========================================
+// ======================================================
 
 function escapeHtml(value) {
 
@@ -245,17 +267,20 @@ function escapeHtml(value) {
 }
 
 
-// ==========================================
+// ======================================================
 // ФОРМИРОВАНИЕ DISCORD EMBED
-// ==========================================
+// ======================================================
 
 function createDiscordPayload(data, formType) {
 
     const COLOR = 3096367;
 
     let title = '';
+
     let description = '';
+
     let fields = [];
+
 
     const timestamp =
         data.createdAt &&
@@ -264,25 +289,21 @@ function createDiscordPayload(data, formType) {
             : new Date().toISOString();
 
 
+    // -----------------------------------------------
     // РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
+    // -----------------------------------------------
 
     if (formType === 'Новый рапорт') {
 
-        title = '📝 Новый рапорт о изменении звания.';
+        title = '📝 Новый рапорт об изменении звания.';
 
         description = '📌 **Основные данные**';
 
         fields = [
 
             {
-                name: 'Докладывает:',
+                name: 'Докладывает / выдал форму:',
                 value: `\`${data.reporting || ''}\``,
-                inline: false
-            },
-
-            {
-                name: 'Кто выдал форму:',
-                value: `\`${data.issuedBy || ''}\``,
                 inline: false
             },
 
@@ -296,37 +317,71 @@ function createDiscordPayload(data, formType) {
                 name: 'Изменение звания:',
                 value: `~~${data.oldRank || ''}~~ ➔ **${data.newRank || ''}**`,
                 inline: false
-            },
-
-            {
-                name: 'SteamID:',
-                value: `\`${data.steamId || ''}\``,
-                inline: false
-            },
-
-            {
-                name: 'Дата рапорта:',
-                value: data.reportDate || '',
-                inline: false
             }
 
         ];
 
+
+        // SteamID показывается только при повышении с кадета.
+
+        if (
+            data.oldRank === 'Кадет' &&
+            data.steamId
+        ) {
+
+            fields.push({
+
+                name: 'SteamID:',
+
+                value: `\`${data.steamId}\``,
+
+                inline: false
+
+            });
+
+        }
+
+
+        fields.push({
+
+            name: 'Дата рапорта:',
+
+            value: data.reportDate || '',
+
+            inline: false
+
+        });
+
     }
 
 
+    // -----------------------------------------------
     // ЗАПРОС НА ПОВЫШЕНИЕ
+    // -----------------------------------------------
 
     else if (formType === 'Запрос на повышение') {
 
-        title = 'Форма рапорта запроса на проверку готовности к повышению';
+        title =
+            'Форма рапорта запроса на проверку готовности к повышению';
 
         fields = [
 
             {
                 name: 'Докладывает:',
-                value: `\`${data.reporting || ''}\``,
+                value: `\`${getStoredReporting(data)}\``,
                 inline: false
+            },
+
+            {
+                name: 'Номер:',
+                value: `\`${data.soldierNumber || ''}\``,
+                inline: true
+            },
+
+            {
+                name: 'Текущее звание:',
+                value: `\`${data.authorRank || ''}\``,
+                inline: true
             },
 
             {
@@ -340,7 +395,9 @@ function createDiscordPayload(data, formType) {
     }
 
 
+    // -----------------------------------------------
     // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
+    // -----------------------------------------------
 
     else if (formType === 'Практическая тренировка') {
 
@@ -350,7 +407,7 @@ function createDiscordPayload(data, formType) {
 
             {
                 name: 'Докладывает:',
-                value: `\`${data.reporting || ''}\``,
+                value: `\`${getStoredReporting(data)}\``,
                 inline: false
             },
 
@@ -389,7 +446,9 @@ function createDiscordPayload(data, formType) {
     }
 
 
+    // -----------------------------------------------
     // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
+    // -----------------------------------------------
 
     else if (formType === 'Теоретическая тренировка') {
 
@@ -399,7 +458,7 @@ function createDiscordPayload(data, formType) {
 
             {
                 name: 'Докладывает:',
-                value: `\`${data.reporting || ''}\``,
+                value: `\`${getStoredReporting(data)}\``,
                 inline: false
             },
 
@@ -440,13 +499,13 @@ function createDiscordPayload(data, formType) {
 
     const embed = {
 
-        title: title,
+        title,
 
         color: COLOR,
 
-        fields: fields,
+        fields,
 
-        timestamp: timestamp
+        timestamp
 
     };
 
@@ -461,9 +520,9 @@ function createDiscordPayload(data, formType) {
 }
 
 
-// ==========================================
+// ======================================================
 // ОБНОВЛЕНИЕ СООБЩЕНИЯ DISCORD
-// ==========================================
+// ======================================================
 
 async function updateDiscordMessage(data, formType) {
 
@@ -481,7 +540,9 @@ async function updateDiscordMessage(data, formType) {
         throw new Error('Не найден адрес Discord Worker.');
     }
 
-    const payload = createDiscordPayload(data, formType);
+    const payload =
+        createDiscordPayload(data, formType);
+
 
     const response = await fetch(
 
@@ -500,6 +561,7 @@ async function updateDiscordMessage(data, formType) {
         }
 
     );
+
 
     const responseText = await response.text();
 
@@ -531,9 +593,9 @@ async function updateDiscordMessage(data, formType) {
 }
 
 
-// ==========================================
+// ======================================================
 // СОХРАНЕНИЕ СТАТУСА СИНХРОНИЗАЦИИ
-// ==========================================
+// ======================================================
 
 async function setSyncStatus(
     docRef,
@@ -549,6 +611,7 @@ async function setSyncStatus(
             firebase.firestore.FieldValue.serverTimestamp()
 
     };
+
 
     if (status === 'synced') {
 
@@ -570,20 +633,23 @@ async function setSyncStatus(
 
     }
 
+
     await docRef.update(update);
 
 }
 
 
-// ==========================================
+// ======================================================
 // ОТОБРАЖЕНИЕ СТАТУСА СИНХРОНИЗАЦИИ
-// ==========================================
+// ======================================================
 
 function getSyncStatusHTML(data, docId) {
 
-    const hasMessageId = Boolean(data.discordMessageId);
+    const hasMessageId =
+        Boolean(data.discordMessageId);
 
-    const status = data.discordSyncStatus ||
+    const status =
+        data.discordSyncStatus ||
         (hasMessageId ? 'synced' : 'missing');
 
     const safeDocId = escapeHtml(docId);
@@ -693,9 +759,9 @@ function getSyncStatusHTML(data, docId) {
 }
 
 
-// ==========================================
+// ======================================================
 // АВТОРИЗАЦИЯ
-// ==========================================
+// ======================================================
 
 auth.onAuthStateChanged(async user => {
 
@@ -703,20 +769,13 @@ auth.onAuthStateChanged(async user => {
 
         currentProfileData = null;
 
-        setTimeout(() => {
-
-            if (!auth.currentUser) {
-
-                window.location.href =
-                    '../login/login.html';
-
-            }
-
-        }, 1000);
+        window.location.href =
+            '../login/login.html';
 
         return;
 
     }
+
 
     try {
 
@@ -733,25 +792,27 @@ auth.onAuthStateChanged(async user => {
         );
 
         const lists = [
+
             rankChangeList,
             promotionList,
             practicalList,
             theoryList
-        ];
+
+        ].filter(Boolean);
+
 
         lists.forEach(list => {
 
-            if (list) {
+            list.innerHTML = `
 
-                list.innerHTML = `
-                    <p style="color:#ef4444;">
-                        ${escapeHtml(error.message)}
-                    </p>
-                `;
+                <p style="color: #ef4444;">
+                    ${escapeHtml(error.message)}
+                </p>
 
-            }
+            `;
 
         });
+
 
         if (
             error.message.toLowerCase().includes('позывной')
@@ -772,21 +833,21 @@ auth.onAuthStateChanged(async user => {
 });
 
 
-// ==========================================
+// ======================================================
 // ЗАГРУЗКА АКТИВНЫХ РАПОРТОВ
-// ==========================================
+// ======================================================
 
 async function loadReports(user, showLoading = true) {
 
     const lists = [
+
         rankChangeList,
         promotionList,
         practicalList,
         theoryList
+
     ].filter(Boolean);
 
-
-    // Показываем загрузку при первоначальном открытии.
 
     if (showLoading) {
 
@@ -799,9 +860,6 @@ async function loadReports(user, showLoading = true) {
 
     try {
 
-        // Загружаем только собственные активные рапорты.
-        // Истёкшие документы остаются в Firestore.
-
         const snapshot = await db
             .collection('reports')
             .where('userId', '==', user.uid)
@@ -813,14 +871,10 @@ async function loadReports(user, showLoading = true) {
             .get();
 
 
-        // Очищаем списки.
-
         lists.forEach(list => {
             list.innerHTML = '';
         });
 
-
-        // Очищаем кэш предыдущей загрузки.
 
         Object.keys(reportDataById).forEach(id => {
             delete reportDataById[id];
@@ -837,13 +891,13 @@ async function loadReports(user, showLoading = true) {
 
             const data = doc.data();
 
-            // Дополнительная проверка срока.
-
             if (!isReportActive(data)) {
                 return;
             }
 
+
             reportDataById[doc.id] = data;
+
 
             const card = document.createElement('div');
 
@@ -852,6 +906,9 @@ async function loadReports(user, showLoading = true) {
 
 
             const safeId = escapeHtml(doc.id);
+
+            const reporting =
+                escapeHtml(getStoredReporting(data));
 
             const syncHTML =
                 getSyncStatusHTML(data, doc.id);
@@ -871,7 +928,9 @@ async function loadReports(user, showLoading = true) {
             `;
 
 
+            // -----------------------------------------
             // ЗАПРОС НА ПОВЫШЕНИЕ
+            // -----------------------------------------
 
             if (data.formType === 'Запрос на повышение') {
 
@@ -881,7 +940,7 @@ async function loadReports(user, showLoading = true) {
 
                     <p>
                         <strong>Докладывает:</strong>
-                        ${escapeHtml(getStoredReporting(data))}
+                        ${reporting}
                     </p>
 
                     <p>
@@ -902,7 +961,9 @@ async function loadReports(user, showLoading = true) {
             }
 
 
+            // -----------------------------------------
             // ПРАКТИЧЕСКАЯ ТРЕНИРОВКА
+            // -----------------------------------------
 
             else if (data.formType === 'Практическая тренировка') {
 
@@ -917,7 +978,7 @@ async function loadReports(user, showLoading = true) {
 
                     <p>
                         <strong>Докладывает:</strong>
-                        ${escapeHtml(getStoredReporting(data))}
+                        ${reporting}
                     </p>
 
                     <p>
@@ -938,7 +999,9 @@ async function loadReports(user, showLoading = true) {
             }
 
 
+            // -----------------------------------------
             // ТЕОРЕТИЧЕСКАЯ ТРЕНИРОВКА
+            // -----------------------------------------
 
             else if (data.formType === 'Теоретическая тренировка') {
 
@@ -953,7 +1016,7 @@ async function loadReports(user, showLoading = true) {
 
                     <p>
                         <strong>Докладывает:</strong>
-                        ${escapeHtml(getStoredReporting(data))}
+                        ${reporting}
                     </p>
 
                     <p>
@@ -974,7 +1037,9 @@ async function loadReports(user, showLoading = true) {
             }
 
 
-            // ИЗМЕНЕНИЕ ЗВАНИЯ
+            // -----------------------------------------
+            // РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
+            // -----------------------------------------
 
             else {
 
@@ -983,7 +1048,12 @@ async function loadReports(user, showLoading = true) {
                 card.innerHTML = `
 
                     <p>
-                        <strong>Номер | Позывной:</strong>
+                        <strong>Докладывает / выдал форму:</strong>
+                        ${reporting}
+                    </p>
+
+                    <p>
+                        <strong>Н | П бойца:</strong>
                         ${escapeHtml(getStoredSoldierInfo(data))}
                     </p>
 
@@ -993,6 +1063,17 @@ async function loadReports(user, showLoading = true) {
                         ➔
                         ${escapeHtml(data.newRank || '')}
                     </p>
+
+                    ${
+                        data.oldRank === 'Кадет' && data.steamId
+                            ? `
+                                <p>
+                                    <strong>SteamID:</strong>
+                                    ${escapeHtml(data.steamId)}
+                                </p>
+                            `
+                            : ''
+                    }
 
                     <p>
                         <strong>Дата:</strong>
@@ -1013,8 +1094,6 @@ async function loadReports(user, showLoading = true) {
 
         });
 
-
-        // Если список пуст.
 
         if (!hasRank && rankChangeList) {
 
@@ -1054,8 +1133,11 @@ async function loadReports(user, showLoading = true) {
 
         lists.forEach(list => {
 
-            list.innerHTML =
-                '<p style="color:#ef4444;">Не удалось загрузить рапорты. Проверьте подключение к базе данных.</p>';
+            list.innerHTML = `
+                <p style="color:#ef4444;">
+                    Не удалось загрузить рапорты. Проверьте подключение к базе данных.
+                </p>
+            `;
 
         });
 
@@ -1064,21 +1146,65 @@ async function loadReports(user, showLoading = true) {
 }
 
 
-// ==========================================
+// ======================================================
+// УПРАВЛЕНИЕ ПОЛЕМ STEAM ID В РЕДАКТОРЕ
+// ======================================================
+
+function updateEditSteamIdVisibility() {
+
+    const oldRank =
+        document.getElementById('editOldRank').value.trim();
+
+    const steamGroup =
+        document.getElementById('editSteamIdGroup');
+
+    const steamInput =
+        document.getElementById('editSteamId');
+
+    const isCadet = oldRank === 'Кадет';
+
+
+    steamGroup.style.display =
+        isCadet ? 'block' : 'none';
+
+    steamInput.disabled = !isCadet;
+
+    steamInput.required = isCadet;
+
+    if (!isCadet) {
+        steamInput.value = '';
+    }
+
+}
+
+
+// Смена старого звания обновляет видимость SteamID.
+
+document.getElementById('editOldRank')
+    .addEventListener('input', updateEditSteamIdVisibility);
+
+document.getElementById('editOldRank')
+    .addEventListener('change', updateEditSteamIdVisibility);
+
+
+// ======================================================
 // ОТКРЫТИЕ ОКНА РЕДАКТИРОВАНИЯ
-// ==========================================
+// ======================================================
 
 window.openModal = function(docId, data) {
 
-    const formType = data.formType || 'Новый рапорт';
+    const formType =
+        data.formType || 'Новый рапорт';
 
 
-    document.getElementById('editDocId').value = docId;
+    document.getElementById('editDocId').value =
+        docId;
 
-    document.getElementById('editFormType').value = formType;
+    document.getElementById('editFormType').value =
+        formType;
 
 
-    // Личные данные автора нельзя менять.
+    // Поле автора заблокировано.
 
     const editReporting =
         document.getElementById('editReporting');
@@ -1087,8 +1213,6 @@ window.openModal = function(docId, data) {
         getStoredReporting(data);
 
     editReporting.readOnly = true;
-
-    editReporting.setAttribute('readonly', 'readonly');
 
 
     const groupRank =
@@ -1129,7 +1253,9 @@ window.openModal = function(docId, data) {
         data.reportDate || '';
 
 
+    // -----------------------------------------------
     // ЗАПРОС НА ПОВЫШЕНИЕ
+    // -----------------------------------------------
 
     if (formType === 'Запрос на повышение') {
 
@@ -1144,7 +1270,9 @@ window.openModal = function(docId, data) {
     }
 
 
+    // -----------------------------------------------
     // ТРЕНИРОВКИ
+    // -----------------------------------------------
 
     else if (
 
@@ -1185,7 +1313,9 @@ window.openModal = function(docId, data) {
     }
 
 
+    // -----------------------------------------------
     // ИЗМЕНЕНИЕ ЗВАНИЯ
+    // -----------------------------------------------
 
     else if (formType === 'Новый рапорт') {
 
@@ -1195,31 +1325,24 @@ window.openModal = function(docId, data) {
         groupRank.style.display = 'block';
 
 
-        document.getElementById('editIssuedBy').value =
-            data.issuedBy || '';
+        // N | П бойца — ручное поле.
 
-
-        // Номер и позывной бойца также нельзя редактировать.
-
-        const editSoldierInfo =
-            document.getElementById('editSoldierInfo');
-
-        editSoldierInfo.value =
+        document.getElementById('editSoldierInfo').value =
             getStoredSoldierInfo(data);
-
-        editSoldierInfo.readOnly = true;
-
-        editSoldierInfo.setAttribute('readonly', 'readonly');
 
 
         document.getElementById('editSteamId').value =
             data.steamId || '';
+
 
         document.getElementById('editOldRank').value =
             data.oldRank || '';
 
         document.getElementById('editNewRank').value =
             data.newRank || '';
+
+
+        updateEditSteamIdVisibility();
 
     } else {
 
@@ -1230,20 +1353,27 @@ window.openModal = function(docId, data) {
     }
 
 
-    document.getElementById('editModal').style.display = 'flex';
+    document.getElementById('editModal').style.display =
+        'flex';
 
 };
 
 
-// ==========================================
-// ОБРАБОТКА КНОПОК КАРТОЧЕК
-// ==========================================
+// ======================================================
+// ОБРАБОТКА КНОПОК СПИСКА
+// ======================================================
 
 document.addEventListener('click', async event => {
 
-    const editButton =
-        event.target.closest('[data-edit-report]');
+    const target = event.target;
 
+    if (!target || typeof target.closest !== 'function') {
+        return;
+    }
+
+
+    const editButton =
+        target.closest('[data-edit-report]');
 
     if (editButton) {
 
@@ -1271,8 +1401,7 @@ document.addEventListener('click', async event => {
 
 
     const retryButton =
-        event.target.closest('[data-retry-sync]');
-
+        target.closest('[data-retry-sync]');
 
     if (retryButton) {
 
@@ -1285,20 +1414,21 @@ document.addEventListener('click', async event => {
 });
 
 
-// ==========================================
+// ======================================================
 // ЗАКРЫТИЕ ОКНА
-// ==========================================
+// ======================================================
 
 window.closeModal = function() {
 
-    document.getElementById('editModal').style.display = 'none';
+    document.getElementById('editModal').style.display =
+        'none';
 
 };
 
 
-// ==========================================
+// ======================================================
 // ПОВТОРНАЯ СИНХРОНИЗАЦИЯ DISCORD
-// ==========================================
+// ======================================================
 
 window.retryDiscordSync = async function(docId) {
 
@@ -1312,9 +1442,19 @@ window.retryDiscordSync = async function(docId) {
 
     }
 
-    const docRef = db.collection('reports').doc(docId);
+
+    const docRef = db
+        .collection('reports')
+        .doc(docId);
+
 
     try {
+
+        // Повторно проверяем наличие позывного.
+
+        currentProfileData =
+            await getCurrentProfileData(user);
+
 
         const docSnap = await docRef.get();
 
@@ -1322,15 +1462,27 @@ window.retryDiscordSync = async function(docId) {
             throw new Error('Рапорт не найден.');
         }
 
+
         const data = docSnap.data();
 
+
         if (data.userId !== user.uid) {
-            throw new Error('Нет доступа к этому рапорту.');
+
+            throw new Error(
+                'Нет доступа к этому рапорту.'
+            );
+
         }
 
+
         if (!isReportActive(data)) {
-            throw new Error('Срок редактирования рапорта истёк.');
+
+            throw new Error(
+                'Срок редактирования рапорта истёк.'
+            );
+
         }
+
 
         if (!data.discordMessageId) {
 
@@ -1339,6 +1491,7 @@ window.retryDiscordSync = async function(docId) {
             );
 
         }
+
 
         const formType =
             data.formType || 'Новый рапорт';
@@ -1389,8 +1542,6 @@ window.retryDiscordSync = async function(docId) {
         }
 
 
-        // Обновляем списки без надписи «Поиск...».
-
         await loadReports(user, false);
 
 
@@ -1408,18 +1559,17 @@ window.retryDiscordSync = async function(docId) {
 };
 
 
-// ==========================================
+// ======================================================
 // СОХРАНЕНИЕ И РЕДАКТИРОВАНИЕ РАПОРТА
-// ==========================================
+// ======================================================
 
 document.getElementById('editForm')
     .addEventListener('submit', async function(event) {
 
         event.preventDefault();
 
-        const submitBtn = event.target.querySelector(
-            'button[type="submit"]'
-        );
+        const submitBtn =
+            event.target.querySelector('button[type="submit"]');
 
         if (submitBtn.disabled) {
             return;
@@ -1450,29 +1600,31 @@ document.getElementById('editForm')
 
         try {
 
-            // Повторно проверяем профиль и обязательный позывной.
-
             currentProfileData =
                 await getCurrentProfileData(user);
 
 
-            const docRef =
-                db.collection('reports').doc(docId);
+            const docRef = db
+                .collection('reports')
+                .doc(docId);
 
-            const currentDoc =
-                await docRef.get();
+            const currentDoc = await docRef.get();
 
 
             if (!currentDoc.exists) {
                 throw new Error('Рапорт не найден.');
             }
 
-            const currentData =
-                currentDoc.data();
+
+            const currentData = currentDoc.data();
 
 
             if (currentData.userId !== user.uid) {
-                throw new Error('Нет доступа к этому рапорту.');
+
+                throw new Error(
+                    'Нет доступа к этому рапорту.'
+                );
+
             }
 
 
@@ -1482,7 +1634,9 @@ document.getElementById('editForm')
                 'Новый рапорт';
 
 
-            // Проверка срока действия.
+            // --------------------------------------
+            // ПРОВЕРКА СРОКА
+            // --------------------------------------
 
             if (!isReportActive(currentData)) {
 
@@ -1497,7 +1651,9 @@ document.getElementById('editForm')
             }
 
 
-            // Проверка типа формы.
+            // --------------------------------------
+            // ПРОВЕРКА ТИПА
+            // --------------------------------------
 
             if (requestedFormType !== formType) {
 
@@ -1508,23 +1664,23 @@ document.getElementById('editForm')
             }
 
 
-            // ======================================
-            // ПОДГОТОВКА ИЗМЕНЯЕМЫХ ДАННЫХ
-            // ======================================
+            // --------------------------------------
+            // ГОТОВИМ ОБНОВЛЯЕМЫЕ ДАННЫЕ
+            // --------------------------------------
 
-            // ВАЖНО:
+            // Не обновляем личные данные автора:
             // reporting, soldierNumber, callsign,
-            // authorRank, accessLevel и userId
-            // не включаются в updatedData.
+            // authorRank, accessLevel и userId.
             //
-            // Эти данные остаются неизменными при редактировании.
+            // Эти поля остаются неизменными.
+
 
             const updatedData = {};
 
 
-            // ======================================
+            // --------------------------------------
             // ЗАПРОС НА ПОВЫШЕНИЕ
-            // ======================================
+            // --------------------------------------
 
             if (formType === 'Запрос на повышение') {
 
@@ -1544,9 +1700,9 @@ document.getElementById('editForm')
             }
 
 
-            // ======================================
+            // --------------------------------------
             // ТРЕНИРОВКИ
-            // ======================================
+            // --------------------------------------
 
             else if (
 
@@ -1605,13 +1761,18 @@ document.getElementById('editForm')
                         document.getElementById('editDescription').value;
 
 
-                    if (
-                        !updatedData.location ||
-                        !updatedData.description.trim()
-                    ) {
+                    if (!updatedData.location) {
 
                         throw new Error(
-                            'Укажите место проведения и описание тренировки.'
+                            'Укажите место проведения тренировки.'
+                        );
+
+                    }
+
+                    if (!updatedData.description.trim()) {
+
+                        throw new Error(
+                            'Укажите описание тренировки.'
                         );
 
                     }
@@ -1621,58 +1782,51 @@ document.getElementById('editForm')
             }
 
 
-            // ======================================
-            // ИЗМЕНЕНИЕ ЗВАНИЯ
-            // ======================================
+            // --------------------------------------
+            // РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ
+            // --------------------------------------
 
             else if (formType === 'Новый рапорт') {
 
-                updatedData.issuedBy =
-                    document.getElementById('editIssuedBy')
+                // N | П бойца — ручной ввод.
+
+                updatedData.soldierInfo =
+                    document.getElementById('editSoldierInfo')
                         .value.trim();
 
-
-                // soldierInfo намеренно не обновляется.
-                // Номер и позывной зафиксированы при создании рапорта.
-
-
-                updatedData.steamId =
-                    document.getElementById('editSteamId')
-                        .value.trim();
 
                 updatedData.oldRank =
-                    document.getElementById('editOldRank').value;
+                    document.getElementById('editOldRank')
+                        .value.trim();
 
                 updatedData.newRank =
-                    document.getElementById('editNewRank').value;
+                    document.getElementById('editNewRank')
+                        .value.trim();
 
                 updatedData.reportDate =
                     document.getElementById('editReportDate').value;
 
 
-                if (!updatedData.issuedBy) {
+                if (!updatedData.soldierInfo) {
 
                     throw new Error(
-                        'Укажите, кто выдал форму.'
+                        'Укажите номер и позывной бойца.'
                     );
 
                 }
 
-                if (!updatedData.steamId) {
+                if (!updatedData.oldRank) {
 
                     throw new Error(
-                        'Укажите SteamID.'
+                        'Укажите старое звание.'
                     );
 
                 }
 
-                if (
-                    !updatedData.oldRank ||
-                    !updatedData.newRank
-                ) {
+                if (!updatedData.newRank) {
 
                     throw new Error(
-                        'Выберите старое и новое звание.'
+                        'Укажите новое звание.'
                     );
 
                 }
@@ -1685,6 +1839,35 @@ document.getElementById('editForm')
 
                 }
 
+
+                // SteamID требуется только при старом звании «Кадет».
+
+                if (updatedData.oldRank === 'Кадет') {
+
+                    const steamId =
+                        document.getElementById('editSteamId')
+                            .value.trim();
+
+                    if (!steamId) {
+
+                        throw new Error(
+                            'При повышении с кадета необходимо указать SteamID.'
+                        );
+
+                    }
+
+                    updatedData.steamId = steamId;
+
+                } else {
+
+                    // Удаляем ранее сохранённый SteamID,
+                    // если старое звание уже не кадет.
+
+                    updatedData.steamId =
+                        firebase.firestore.FieldValue.delete();
+
+                }
+
             } else {
 
                 throw new Error(
@@ -1694,12 +1877,9 @@ document.getElementById('editForm')
             }
 
 
-            // ======================================
-            // ОБЪЕДИНЕНИЕ ДАННЫХ
-            // ======================================
-
-            // Неизменяемые личные данные автора
-            // сохраняются из исходного документа.
+            // --------------------------------------
+            // ФОРМИРУЕМ ДАННЫЕ ДЛЯ DISCORD
+            // --------------------------------------
 
             const mergedData = {
 
@@ -1710,9 +1890,22 @@ document.getElementById('editForm')
             };
 
 
-            // ======================================
-            // СОХРАНЕНИЕ В FIRESTORE
-            // ======================================
+            // FieldValue.delete() используется для Firestore,
+            // а в Discord отправлять его нельзя.
+
+            if (
+                formType === 'Новый рапорт' &&
+                updatedData.oldRank !== 'Кадет'
+            ) {
+
+                delete mergedData.steamId;
+
+            }
+
+
+            // --------------------------------------
+            // СОХРАНЯЕМ В FIRESTORE
+            // --------------------------------------
 
             await docRef.update({
 
@@ -1729,9 +1922,9 @@ document.getElementById('editForm')
             });
 
 
-            // ======================================
-            // ОБНОВЛЕНИЕ DISCORD
-            // ======================================
+            // --------------------------------------
+            // ОБНОВЛЯЕМ DISCORD
+            // --------------------------------------
 
             try {
 
@@ -1804,9 +1997,9 @@ document.getElementById('editForm')
     });
 
 
-// ==========================================
+// ======================================================
 // ВЫХОД ИЗ АККАУНТА
-// ==========================================
+// ======================================================
 
 const logoutBtn =
     document.getElementById('logoutBtn');
