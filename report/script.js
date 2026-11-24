@@ -21,6 +21,61 @@ const statusDiv = document.getElementById('formStatus');
 
 
 // ==========================================
+// ПОЛУЧЕНИЕ И ПРОВЕРКА УРОВНЯ ПОЛЬЗОВАТЕЛЯ
+// ==========================================
+
+async function getReportAccessData(user) {
+
+    const profileSnapshot = await db
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!profileSnapshot.exists) {
+        throw new Error('Профиль пользователя не найден.');
+    }
+
+    const profile = profileSnapshot.data();
+
+    if (profile.status !== 'approved') {
+        throw new Error(
+            'Ваш аккаунт ещё не одобрен администрацией.'
+        );
+    }
+
+    let authorRank = profile.rank;
+    let accessLevel = profile.accessLevel;
+
+    // Главный администратор может не иметь обычного звания.
+    // Для его собственных рапортов используется отдельная отметка.
+    if (
+        ['admin', 'superadmin'].includes(profile.role) &&
+        (!authorRank || !Number.isInteger(accessLevel))
+    ) {
+        authorRank = 'Администрация';
+        accessLevel = 7;
+    }
+
+    if (
+        typeof authorRank !== 'string' ||
+        !authorRank.trim() ||
+        !Number.isInteger(accessLevel) ||
+        accessLevel < 0 ||
+        accessLevel > 7
+    ) {
+        throw new Error(
+            'В профиле не назначено корректное звание или уровень доступа. Обратитесь к администрации.'
+        );
+    }
+
+    return {
+        authorRank: authorRank,
+        accessLevel: accessLevel
+    };
+}
+
+
+// ==========================================
 // ОТОБРАЖЕНИЕ СТАТУСА
 // ==========================================
 
@@ -73,10 +128,8 @@ reportForm.addEventListener('submit', async function(event) {
     }
 
     const form = event.target;
-
     const submitBtn = form.querySelector('.btn-submit');
 
-    // Защита от повторного нажатия
     if (submitBtn.disabled) {
         return;
     }
@@ -87,31 +140,42 @@ reportForm.addEventListener('submit', async function(event) {
     let docRef = null;
     let firestoreSaved = false;
     let discordResponseAccepted = false;
+    let createdMessageId = null;
 
-    showStatus('Создание рапорта...');
-
-    const formData = {
-        reporting: form.reporting.value.trim(),
-        issuedBy: form.issuedBy.value.trim(),
-        soldierInfo: form.soldierInfo.value.trim(),
-        oldRank: form.oldRank.value,
-        newRank: form.newRank.value,
-        steamId: form.steamId.value.trim(),
-        reportDate: form.reportDate.value,
-
-        // Сохраняем оба поля для совместимости
-        reportType: "Новый рапорт",
-        formType: "Новый рапорт"
-    };
-
-    // Срок действия рапорта — 3 дня
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 3);
+    showStatus('Проверка профиля и создание рапорта...');
 
     try {
 
         // ==================================
-        // 1. СОХРАНЕНИЕ В FIRESTORE
+        // 1. ПОЛУЧЕНИЕ УРОВНЯ ДОСТУПА
+        // ==================================
+
+        const reportAccess = await getReportAccessData(user);
+
+        const formData = {
+
+            reporting: form.reporting.value.trim(),
+            issuedBy: form.issuedBy.value.trim(),
+            soldierInfo: form.soldierInfo.value.trim(),
+            oldRank: form.oldRank.value,
+            newRank: form.newRank.value,
+            steamId: form.steamId.value.trim(),
+            reportDate: form.reportDate.value,
+
+            reportType: "Новый рапорт",
+            formType: "Новый рапорт",
+
+            // Снимок звания и уровня на момент подачи.
+            authorRank: reportAccess.authorRank,
+            accessLevel: reportAccess.accessLevel
+        };
+
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 3);
+
+
+        // ==================================
+        // 2. СОХРАНЕНИЕ В FIRESTORE
         // ==================================
 
         docRef = await db.collection('reports').add({
@@ -136,13 +200,11 @@ reportForm.addEventListener('submit', async function(event) {
 
         firestoreSaved = true;
 
-        showStatus(
-            'Рапорт сохранён. Отправка в Discord...'
-        );
+        showStatus('Рапорт сохранён. Отправка в Discord...');
 
 
         // ==================================
-        // 2. ПОДГОТОВКА DISCORD EMBED
+        // 3. ПОДГОТОВКА DISCORD EMBED
         // ==================================
 
         const payload = {
@@ -205,18 +267,16 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==================================
-        // 3. ОТПРАВКА В DISCORD
+        // 4. ОТПРАВКА В DISCORD
         // ==================================
 
         const response = await fetch(
             `${DISCORD_WEBHOOK_URL}?wait=true`,
             {
                 method: 'POST',
-
                 headers: {
                     'Content-Type': 'application/json'
                 },
-
                 body: JSON.stringify(payload)
             }
         );
@@ -226,19 +286,13 @@ reportForm.addEventListener('submit', async function(event) {
         let discordResult = {};
 
         try {
-
             discordResult = responseText
                 ? JSON.parse(responseText)
                 : {};
-
         } catch (parseError) {
-
             discordResult = {};
-
         }
 
-
-        // Проверяем HTTP-ответ
         if (!response.ok) {
 
             const errorMessage =
@@ -252,25 +306,24 @@ reportForm.addEventListener('submit', async function(event) {
             );
         }
 
+        discordResponseAccepted = true;
 
-        // Проверяем ID сообщения
         if (!discordResult.id) {
-
             throw new Error(
                 'Discord ответил успешно, но не вернул ID сообщения.'
             );
         }
 
-        discordResponseAccepted = true;
+        createdMessageId = discordResult.id;
 
 
         // ==================================
-        // 4. ОБНОВЛЕНИЕ СТАТУСА FIRESTORE
+        // 5. ОБНОВЛЕНИЕ СТАТУСА FIRESTORE
         // ==================================
 
         await docRef.update({
 
-            discordMessageId: discordResult.id,
+            discordMessageId: createdMessageId,
 
             discordSyncStatus: "synced",
 
@@ -287,7 +340,7 @@ reportForm.addEventListener('submit', async function(event) {
 
 
         // ==================================
-        // 5. УСПЕШНОЕ ЗАВЕРШЕНИЕ
+        // 6. УСПЕШНОЕ ЗАВЕРШЕНИЕ
         // ==================================
 
         showStatus(
@@ -302,16 +355,11 @@ reportForm.addEventListener('submit', async function(event) {
 
         console.error('Ошибка отправки рапорта:', error);
 
-
-        // ==================================
-        // СОХРАНЕНИЕ ОШИБКИ
-        // ==================================
-
         if (docRef) {
 
             try {
 
-                await docRef.update({
+                const failedData = {
 
                     discordSyncStatus: "failed",
 
@@ -321,7 +369,13 @@ reportForm.addEventListener('submit', async function(event) {
                     discordSyncUpdatedAt:
                         firebase.firestore.FieldValue.serverTimestamp()
 
-                });
+                };
+
+                if (createdMessageId) {
+                    failedData.discordMessageId = createdMessageId;
+                }
+
+                await docRef.update(failedData);
 
             } catch (statusError) {
 
@@ -334,26 +388,28 @@ reportForm.addEventListener('submit', async function(event) {
 
         }
 
-
-        // ==================================
-        // УВЕДОМЛЕНИЕ ПОЛЬЗОВАТЕЛЯ
-        // ==================================
-
         if (firestoreSaved) {
 
             form.reset();
 
-            if (discordResponseAccepted) {
+            if (createdMessageId) {
 
                 showStatus(
-                    'Рапорт сохранён в базе, но не удалось сохранить подтверждение Discord в Firestore. Сообщение могло уже появиться в Discord. Не отправляйте этот рапорт повторно.',
+                    'Рапорт сохранён, сообщение создано, но не удалось сохранить подтверждение Discord в Firestore. Не отправляйте рапорт повторно. ID рапорта: ' + docRef.id,
+                    'error'
+                );
+
+            } else if (discordResponseAccepted) {
+
+                showStatus(
+                    'Рапорт сохранён в Firestore, но Discord не вернул ID сообщения. Сообщение могло появиться в Discord. Не отправляйте форму повторно. ID рапорта: ' + docRef.id,
                     'error'
                 );
 
             } else {
 
                 showStatus(
-                    'Рапорт сохранён в Firestore, но отправка в Discord не подтверждена. Не отправляйте его повторно, чтобы не создать дубликат. Запишите ID рапорта: ' + docRef.id,
+                    'Рапорт сохранён в Firestore, но отправка в Discord не подтверждена. Не отправляйте его повторно, чтобы не создать дубликат. ID рапорта: ' + docRef.id,
                     'error'
                 );
 
@@ -362,8 +418,7 @@ reportForm.addEventListener('submit', async function(event) {
         } else {
 
             showStatus(
-                'Не удалось сохранить рапорт в Firestore: ' +
-                error.message,
+                'Не удалось сохранить рапорт: ' + error.message,
                 'error'
             );
 
@@ -371,7 +426,6 @@ reportForm.addEventListener('submit', async function(event) {
 
     } finally {
 
-        // Разблокируем кнопку
         submitBtn.classList.remove('loading');
         submitBtn.disabled = false;
 
