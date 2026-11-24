@@ -373,12 +373,6 @@ function createDiscordPayload(data, formType) {
             },
 
             {
-                name: 'Номер:',
-                value: `\`${data.soldierNumber || ''}\``,
-                inline: true
-            },
-
-            {
                 name: 'Текущее звание:',
                 value: `\`${data.authorRank || ''}\``,
                 inline: true
