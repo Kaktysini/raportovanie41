@@ -207,7 +207,7 @@ function renderProfile() {
     if (profileNumberElement) {
 
         const identityParts = [
-            `Боец № ${soldierNumber}`
+            String(soldierNumber)
         ];
 
         if (callsign) {
