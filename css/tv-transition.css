@@ -1,0 +1,310 @@
+/* ==================================================
+   TV CHANNEL TRANSITION — 41-й ЭРК
+   ================================================== */
+
+.tv-transition-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+    background: #030403;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateZ(0);
+    contain: strict;
+}
+
+/* Активный экран помех */
+
+.tv-transition-layer.is-active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Полотно телевизионного шума */
+
+.tv-transition-noise {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.82;
+    image-rendering: pixelated;
+}
+
+/* Горизонтальные линии старого ЭЛТ-экрана */
+
+.tv-transition-scanlines {
+    position: absolute;
+    inset: 0;
+
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.035) 0,
+        rgba(255, 255, 255, 0.035) 1px,
+        transparent 1px,
+        transparent 3px
+    );
+
+    opacity: 0.65;
+}
+
+/* Затемнение краёв экрана */
+
+.tv-transition-vignette {
+    position: absolute;
+    inset: 0;
+
+    background: radial-gradient(
+        ellipse at center,
+        transparent 25%,
+        rgba(0, 0, 0, 0.25) 65%,
+        rgba(0, 0, 0, 0.9) 100%
+    );
+}
+
+/* Пробегающая полоса сигнала */
+
+.tv-transition-roll {
+    position: absolute;
+    top: -25%;
+    left: 0;
+    width: 100%;
+    height: 18%;
+
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(255, 255, 255, 0.06) 35%,
+        rgba(255, 255, 255, 0.35) 50%,
+        rgba(255, 255, 255, 0.06) 65%,
+        transparent
+    );
+
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.08);
+    opacity: 0;
+}
+
+
+/* ==================================================
+   ПЕРЕКЛЮЧЕНИЕ КАНАЛА
+   ================================================== */
+
+.tv-transition-layer.is-switching {
+    animation: tv-screen-jitter 0.075s steps(2, end) infinite;
+}
+
+.tv-transition-layer.is-switching .tv-transition-noise {
+    opacity: 0.95;
+}
+
+.tv-transition-layer.is-switching .tv-transition-scanlines {
+    opacity: 0.85;
+}
+
+.tv-transition-layer.is-switching .tv-transition-roll {
+    animation: tv-signal-roll 0.42s linear infinite;
+}
+
+
+/* Мерцание изображения */
+
+.tv-transition-layer.is-switching::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+
+    background: repeating-linear-gradient(
+        to bottom,
+        transparent 0,
+        transparent 7px,
+        rgba(255, 255, 255, 0.12) 8px,
+        transparent 10px
+    );
+
+    opacity: 0.3;
+
+    animation: tv-static-flicker 0.11s steps(2, end) infinite;
+}
+
+
+/* Горизонтальные цветовые помехи */
+
+.tv-transition-layer.is-switching::after {
+    content: "";
+    position: absolute;
+    z-index: 6;
+    left: -5%;
+    top: 0;
+    width: 110%;
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(190, 210, 190, 0.08) 28%,
+        rgba(255, 255, 255, 0.12) 50%,
+        rgba(190, 210, 190, 0.08) 72%,
+        transparent 100%
+    );
+
+    opacity: 0.35;
+    mix-blend-mode: screen;
+
+    animation: tv-horizontal-glitch 0.17s steps(2, end) infinite;
+}
+
+
+/* ==================================================
+   ПОЯВЛЕНИЕ НОВОЙ СТРАНИЦЫ
+   ================================================== */
+
+.tv-transition-layer.is-entering {
+    animation: tv-channel-arrival 0.42s steps(7, end) forwards;
+}
+
+
+/* ==================================================
+   АНИМАЦИИ
+   ================================================== */
+
+@keyframes tv-screen-jitter {
+
+    0% {
+        transform: translate(0, 0);
+        filter: contrast(1.3) brightness(1);
+    }
+
+    25% {
+        transform: translate(-2px, 1px);
+        filter: contrast(1.8) brightness(1.2);
+    }
+
+    50% {
+        transform: translate(1px, -1px);
+        filter: contrast(1.1) brightness(0.85);
+    }
+
+    75% {
+        transform: translate(2px, 0);
+        filter: contrast(1.6) brightness(1.1);
+    }
+
+    100% {
+        transform: translate(0, 0);
+        filter: contrast(1.3) brightness(1);
+    }
+
+}
+
+
+@keyframes tv-static-flicker {
+
+    0% {
+        opacity: 0.15;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 0.2;
+    }
+
+}
+
+
+@keyframes tv-horizontal-glitch {
+
+    0% {
+        transform: translateX(-3%);
+        opacity: 0.15;
+    }
+
+    50% {
+        transform: translateX(3%);
+        opacity: 0.45;
+    }
+
+    100% {
+        transform: translateX(-1%);
+        opacity: 0.2;
+    }
+
+}
+
+
+@keyframes tv-signal-roll {
+
+    0% {
+        top: -25%;
+        opacity: 0;
+    }
+
+    15% {
+        opacity: 1;
+    }
+
+    85% {
+        opacity: 0.6;
+    }
+
+    100% {
+        top: 110%;
+        opacity: 0;
+    }
+
+}
+
+
+@keyframes tv-channel-arrival {
+
+    0% {
+        opacity: 1;
+        filter: brightness(1.5) contrast(1.6);
+    }
+
+    15% {
+        opacity: 0.95;
+    }
+
+    30% {
+        opacity: 0.6;
+    }
+
+    45% {
+        opacity: 0.95;
+    }
+
+    65% {
+        opacity: 0.5;
+    }
+
+    85% {
+        opacity: 0.15;
+    }
+
+    100% {
+        opacity: 0;
+        visibility: hidden;
+        filter: brightness(1) contrast(1);
+    }
+
+}
+
+
+/* Отключаем анимацию при системной настройке
+   уменьшения движения */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .tv-transition-layer {
+        display: none !important;
+    }
+
+}
