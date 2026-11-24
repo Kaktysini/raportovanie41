@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -18,64 +19,117 @@
         <div class="form-header" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
                 <h2>Добро пожаловать!</h2>
-                <p>Вы вошли как: <strong id="profileNumber" style="color: #4caf50; font-size: 1.2em;">Загрузка...</strong></p>
+                <p>
+                    Вы вошли как:
+                    <strong id="profileNumber" style="color: #4caf50; font-size: 1.2em;">
+                        Загрузка...
+                    </strong>
+                </p>
             </div>
+
             <button id="logoutBtn" class="btn-logout">Выйти</button>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+
             <div class="menu-card" onclick="openFormModal()" style="cursor: pointer;">
                 <h3>📝 Подать рапорт</h3>
                 <p>Создать новый рапорт (выбор формы).</p>
             </div>
+
             <a href="../edit/edit.html" class="menu-card">
                 <h3>📂 Мои рапорта</h3>
                 <p>Просмотр и редактирование активных рапортов.</p>
             </a>
+
             <div class="menu-card" style="opacity: 0.5; cursor: not-allowed;">
                 <h3>⚙️ Другие формы</h3>
                 <p>Раздел в разработке.</p>
             </div>
+
             <div class="menu-card" style="opacity: 0.5; cursor: not-allowed;">
                 <h3>📊 Статистика</h3>
                 <p>Раздел в разработке.</p>
             </div>
+
+            <!-- Карточка видна только администраторам -->
+            <a
+                href="../admin/index.html"
+                class="menu-card"
+                id="adminPanelCard"
+                style="display: none;"
+            >
+                <h3>🛡️ Панель администрации</h3>
+                <p>Управление пользователями, регистрациями и уровнями доступа.</p>
+            </a>
+
         </div>
     </main>
 
     <!-- МОДАЛЬНОЕ ОКНО ВЫБОРА ФОРМЫ -->
+
     <div id="formModal" class="modal-overlay">
         <div class="modal-content">
-            <h2 style="margin-top:0; color: #f3f4f6;">Выберите форму рапорта</h2>
-            <p style="color: #9ca3af; margin-bottom: 20px;">Доступные бланки для заполнения:</p>
-            
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                <a href="../report/index.html" class="form-select-btn">📄 Рапорт об изменении звания</a>
-                <a href="../promotion/index.html" class="form-select-btn">📄 Запрос на проверку готовности к повышению</a>
-                
-                <!-- ЗАГЛУШКИ ДЛЯ БУДУЩИХ ФОРМ -->
-                <!-- <a href="#" class="form-select-btn">📄 Смена позывного</a> -->
-                <!-- <a href="#" class="form-select-btn">📄 Рапорт СО</a> -->
 
-                <button type="button" class="form-select-btn" onclick="toggleTrainingMenu()">
+            <h2 style="margin-top:0; color: #f3f4f6;">
+                Выберите форму рапорта
+            </h2>
+
+            <p style="color: #9ca3af; margin-bottom: 20px;">
+                Доступные бланки для заполнения:
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+
+                <a href="../report/index.html" class="form-select-btn">
+                    📄 Рапорт об изменении звания
+                </a>
+
+                <a href="../promotion/index.html" class="form-select-btn">
+                    📄 Запрос на проверку готовности к повышению
+                </a>
+
+                <button
+                    type="button"
+                    class="form-select-btn"
+                    onclick="toggleTrainingMenu()"
+                >
                     <span>📄 Тренировки</span>
-                    <span id="trainingArrow" style="margin-left: auto; transition: transform 0.3s;">▼</span>
+                    <span id="trainingArrow" style="margin-left: auto; transition: transform 0.3s;">
+                        ▼
+                    </span>
                 </button>
 
                 <div id="trainingSubMenu" class="sub-menu">
-                    <a href="../training/practical.html" class="form-select-btn sub-btn">➔ Практическая тренировка</a>
-                    <a href="../training/theory.html" class="form-select-btn sub-btn">➔ Теоретическая тренировка</a>
+                    <a href="../training/practical.html" class="form-select-btn sub-btn">
+                        ➔ Практическая тренировка
+                    </a>
+
+                    <a href="../training/theory.html" class="form-select-btn sub-btn">
+                        ➔ Теоретическая тренировка
+                    </a>
                 </div>
+
             </div>
 
             <div class="form-actions" style="margin-top: 25px; border-top: none; padding-top: 0;">
-                <button type="button" class="btn-reset" onclick="closeFormModal()" style="width: 100%;">ЗАКРЫТЬ</button>
+                <button
+                    type="button"
+                    class="btn-reset"
+                    onclick="closeFormModal()"
+                    style="width: 100%;"
+                >
+                    ЗАКРЫТЬ
+                </button>
             </div>
+
         </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
     <script src="dashboard.js"></script>
 </body>
 </html>
