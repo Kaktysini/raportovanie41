@@ -2,146 +2,440 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Мои рапорты | 41-й ЭРК</title>
     <link rel="stylesheet" href="../css/style.css">
+
     <style>
         .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
         }
+
         .modal-content {
-            background: #1e221f; padding: 20px; border-radius: 4px; border: 1px solid #374151;
-            width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+            background: #1e221f;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #374151;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .identity-field {
+            background: #111312 !important;
+            border: 1px solid #374151 !important;
+            color: #aeb8ad !important;
+            cursor: not-allowed;
+        }
+
+        .identity-hint {
+            display: block;
+            color: #9ca3af;
+            font-size: 12px;
+            margin-top: 5px;
         }
     </style>
 </head>
+
 <body>
+
     <header class="site-header">
+
         <div class="logo-container">
+
             <h1>41-Й ЭЛИТНЫЙ РАЗВЕДЫВАТЕЛЬНЫЙ КОРПУС</h1>
+
             <p>ЛИЧНЫЙ КАБИНЕТ БОЙЦА</p>
+
             <div style="margin-top: 10px;">
-                <a href="../dashboard/index.html" style="color: #4caf50; text-decoration: none; font-size: 14px; margin-right: 15px;">🏠 Главное меню</a>
-                <button id="logoutBtn" class="btn-logout">Выйти</button>
+
+                <a
+                    href="../dashboard/index.html"
+                    style="color: #4caf50; text-decoration: none; font-size: 14px; margin-right: 15px;"
+                >
+                    🏠 Главное меню
+                </a>
+
+                <button id="logoutBtn" class="btn-logout">
+                    Выйти
+                </button>
+
             </div>
+
         </div>
+
     </header>
 
+
     <main class="report-form-container">
-        <!-- СЕКЦИЯ 1: Рапорты об изменении звания -->
+
+        <!-- СЕКЦИЯ 1: РАПОРТЫ ОБ ИЗМЕНЕНИИ ЗВАНИЯ -->
+
         <div id="rankChangeSection">
-            <h3 class="section-title">📄 Рапорты об изменении звания</h3>
+
+            <h3 class="section-title">
+                📄 Рапорты об изменении звания
+            </h3>
+
             <div id="rankChangeList">
                 <p>Загрузка данных...</p>
             </div>
+
         </div>
 
-        <!-- СЕКЦИЯ 2: Запросы на повышение -->
+
+        <!-- СЕКЦИЯ 2: ЗАПРОСЫ НА ПОВЫШЕНИЕ -->
+
         <div id="promotionSection">
-            <h3 class="section-title">📄 Запросы на проверку готовности к повышению</h3>
+
+            <h3 class="section-title">
+                📄 Запросы на проверку готовности к повышению
+            </h3>
+
             <div id="promotionList">
                 <p>Загрузка данных...</p>
             </div>
+
         </div>
 
-        <!-- СЕКЦИЯ 3: Практические тренировки -->
+
+        <!-- СЕКЦИЯ 3: ПРАКТИЧЕСКИЕ ТРЕНИРОВКИ -->
+
         <div id="practicalSection">
-            <h3 class="section-title">🏃 Рапорты о практических тренировках</h3>
+
+            <h3 class="section-title">
+                🏃 Рапорты о практических тренировках
+            </h3>
+
             <div id="practicalList">
                 <p>Загрузка данных...</p>
             </div>
+
         </div>
 
-        <!-- СЕКЦИЯ 4: Теоретические тренировки -->
+
+        <!-- СЕКЦИЯ 4: ТЕОРЕТИЧЕСКИЕ ТРЕНИРОВКИ -->
+
         <div id="theorySection">
-            <h3 class="section-title">📚 Рапорты о теоретических тренировках</h3>
+
+            <h3 class="section-title">
+                📚 Рапорты о теоретических тренировках
+            </h3>
+
             <div id="theoryList">
                 <p>Загрузка данных...</p>
             </div>
+
         </div>
+
     </main>
 
-    <!-- МОДАЛЬНОЕ ОКНО ДЛЯ РЕДАКТИРОВАНИЯ (ОБНОВЛЕНО ДЛЯ ВСЕХ ФОРМ) -->
+
+    <!-- ================================================== -->
+    <!-- МОДАЛЬНОЕ ОКНО РЕДАКТИРОВАНИЯ -->
+    <!-- ================================================== -->
+
     <div id="editModal" class="modal-overlay">
+
         <div class="modal-content">
-            <h2 id="modalTitle" style="margin-top:0;">Редактирование рапорта</h2>
+
+            <h2 id="modalTitle" style="margin-top: 0;">
+                Редактирование рапорта
+            </h2>
+
+
             <form id="editForm">
+
                 <input type="hidden" id="editDocId">
+
                 <input type="hidden" id="editFormType">
-                
-                <!-- Общие поля -->
+
+
+                <!-- ОБЩИЕ ДАННЫЕ АВТОРА -->
+
                 <div class="form-group">
-                    <label>Докладывает</label>
-                    <input type="text" id="editReporting" required>
+
+                    <label for="editReporting">
+                        Докладывает
+                    </label>
+
+                    <input
+                        type="text"
+                        id="editReporting"
+                        class="identity-field"
+                        readonly
+                        aria-readonly="true"
+                    >
+
+                    <small class="identity-hint">
+                        Личные данные загружены из профиля и не подлежат редактированию.
+                    </small>
+
                 </div>
 
-                <!-- ПОЛЯ ДЛЯ РАПОРТА ОБ ИЗМЕНЕНИИ ЗВАНИЯ -->
+
+                <!-- РАПОРТ ОБ ИЗМЕНЕНИИ ЗВАНИЯ -->
+
                 <div id="group-rank" class="rank-fields">
-                    <div class="form-group"><label>Кто выдал форму</label><input type="text" id="editIssuedBy"></div>
-                    <div class="form-group"><label>Н | П бойца</label><input type="text" id="editSoldierInfo"></div>
-                    <div class="form-group"><label>SteamID</label><input type="text" id="editSteamId"></div>
-                    <div class="form-group"><label>Старое звание</label><input type="text" id="editOldRank"></div>
-                    <div class="form-group"><label>Новое звание</label><input type="text" id="editNewRank"></div>
+
+                    <div class="form-group">
+
+                        <label for="editIssuedBy">
+                            Кто выдал форму
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editIssuedBy"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editSoldierInfo">
+                            Н | П бойца
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editSoldierInfo"
+                            class="identity-field"
+                            readonly
+                            aria-readonly="true"
+                        >
+
+                        <small class="identity-hint">
+                            Номер и позывной бойца нельзя изменить.
+                        </small>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editSteamId">
+                            SteamID
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editSteamId"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editOldRank">
+                            Старое звание
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editOldRank"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editNewRank">
+                            Новое звание
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editNewRank"
+                        >
+
+                    </div>
+
                 </div>
 
-                <!-- ПОЛЯ ДЛЯ ЗАПРОСА НА ПОВЫШЕНИЕ -->
-                <div id="group-promotion" class="promotion-fields">
-                    <div class="form-group"><label>Запрашиваю проверку на повышение</label><input type="text" id="editRequestedRank"></div>
+
+                <!-- ЗАПРОС НА ПОВЫШЕНИЕ -->
+
+                <div
+                    id="group-promotion"
+                    class="promotion-fields"
+                >
+
+                    <div class="form-group">
+
+                        <label for="editRequestedRank">
+                            Запрашиваю проверку на повышение
+                        </label>
+
+                        <input
+                            type="text"
+                            id="editRequestedRank"
+                        >
+
+                    </div>
+
                 </div>
 
-                <!-- ПОЛЯ ДЛЯ ТРЕНИРОВОК -->
-                <!-- ПОЛЯ ДЛЯ ТРЕНИРОВОК -->
-<div id="group-training" class="training-fields">
 
-    <div class="form-group">
-        <label>Название тренировки</label>
-        <input type="text" id="editTrainingName">
-    </div>
+                <!-- ПРАКТИЧЕСКИЕ И ТЕОРЕТИЧЕСКИЕ ТРЕНИРОВКИ -->
 
-    <!-- Дополнительные поля только для практических тренировок -->
-    <div id="group-practical-details" style="display: none;">
+                <div
+                    id="group-training"
+                    class="training-fields"
+                >
 
-        <div class="form-group">
-            <label>База / За базой</label>
-            <input type="text" id="editLocation">
-        </div>
+                    <div class="form-group">
 
-        <div class="form-group">
-            <label>Описание тренировки</label>
-            <textarea id="editDescription" rows="3"></textarea>
-        </div>
+                        <label for="editTrainingName">
+                            Название тренировки
+                        </label>
 
-    </div>
+                        <input
+                            type="text"
+                            id="editTrainingName"
+                        >
 
-    <div class="form-group">
-        <label>Состав / Оценки</label>
-        <textarea id="editParticipants" rows="3"></textarea>
-    </div>
+                    </div>
 
-    <div class="form-group">
-        <label>Примечание</label>
-        <textarea id="editNotes" rows="2"></textarea>
-    </div>
 
-</div>
+                    <!-- ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ПРАКТИЧЕСКИХ ТРЕНИРОВОК -->
 
-<!-- ДАТА РАПОРТА ИЛИ ТРЕНИРОВКИ -->
-<div id="group-date" class="form-group" style="display: none;">
-    <label>Дата рапорта / тренировки</label>
-    <input type="date" id="editReportDate">
-</div>
+                    <div
+                        id="group-practical-details"
+                        style="display: none;"
+                    >
 
-                <div class="form-actions" style="margin-top: 20px;">
-                    <button type="submit" class="btn-submit">СОХРАНИТЬ</button>
-                    <button type="button" class="btn-reset" onclick="closeModal()">ОТМЕНА</button>
+                        <div class="form-group">
+
+                            <label for="editLocation">
+                                База / За базой
+                            </label>
+
+                            <input
+                                type="text"
+                                id="editLocation"
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="editDescription">
+                                Описание тренировки
+                            </label>
+
+                            <textarea
+                                id="editDescription"
+                                rows="3"
+                            ></textarea>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editParticipants">
+                            Состав / Оценки
+                        </label>
+
+                        <textarea
+                            id="editParticipants"
+                            rows="3"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="editNotes">
+                            Примечание
+                        </label>
+
+                        <textarea
+                            id="editNotes"
+                            rows="2"
+                        ></textarea>
+
+                    </div>
+
                 </div>
+
+
+                <!-- ДАТА РАПОРТА ИЛИ ТРЕНИРОВКИ -->
+
+                <div
+                    id="group-date"
+                    class="form-group"
+                    style="display: none;"
+                >
+
+                    <label for="editReportDate">
+                        Дата рапорта / тренировки
+                    </label>
+
+                    <input
+                        type="date"
+                        id="editReportDate"
+                    >
+
+                </div>
+
+
+                <!-- КНОПКИ -->
+
+                <div
+                    class="form-actions"
+                    style="margin-top: 20px;"
+                >
+
+                    <button
+                        type="submit"
+                        class="btn-submit"
+                    >
+                        СОХРАНИТЬ
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-reset"
+                        onclick="closeModal()"
+                    >
+                        ОТМЕНА
+                    </button>
+
+                </div>
+
             </form>
+
         </div>
+
     </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+
     <script src="edit.js"></script>
+
 </body>
 </html>
