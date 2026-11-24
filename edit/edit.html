@@ -79,8 +79,6 @@
 
     <main class="report-form-container">
 
-        <!-- СЕКЦИЯ 1: РАПОРТЫ ОБ ИЗМЕНЕНИИ ЗВАНИЯ -->
-
         <div id="rankChangeSection">
 
             <h3 class="section-title">
@@ -93,8 +91,6 @@
 
         </div>
 
-
-        <!-- СЕКЦИЯ 2: ЗАПРОСЫ НА ПОВЫШЕНИЕ -->
 
         <div id="promotionSection">
 
@@ -109,8 +105,6 @@
         </div>
 
 
-        <!-- СЕКЦИЯ 3: ПРАКТИЧЕСКИЕ ТРЕНИРОВКИ -->
-
         <div id="practicalSection">
 
             <h3 class="section-title">
@@ -123,8 +117,6 @@
 
         </div>
 
-
-        <!-- СЕКЦИЯ 4: ТЕОРЕТИЧЕСКИЕ ТРЕНИРОВКИ -->
 
         <div id="theorySection">
 
@@ -166,7 +158,7 @@
                 <div class="form-group">
 
                     <label for="editReporting">
-                        Докладывает
+                        Докладывает / выдаёт форму
                     </label>
 
                     <input
@@ -178,7 +170,7 @@
                     >
 
                     <small class="identity-hint">
-                        Личные данные загружены из профиля и не подлежат редактированию.
+                        Личные данные автора рапорта нельзя изменить.
                     </small>
 
                 </div>
@@ -190,20 +182,6 @@
 
                     <div class="form-group">
 
-                        <label for="editIssuedBy">
-                            Кто выдал форму
-                        </label>
-
-                        <input
-                            type="text"
-                            id="editIssuedBy"
-                        >
-
-                    </div>
-
-
-                    <div class="form-group">
-
                         <label for="editSoldierInfo">
                             Н | П бойца
                         </label>
@@ -211,14 +189,8 @@
                         <input
                             type="text"
                             id="editSoldierInfo"
-                            class="identity-field"
-                            readonly
-                            aria-readonly="true"
+                            placeholder="Номер | Позывной бойца"
                         >
-
-                        <small class="identity-hint">
-                            Номер и позывной бойца нельзя изменить.
-                        </small>
 
                     </div>
 
@@ -229,10 +201,20 @@
                             SteamID
                         </label>
 
-                        <input
-                            type="text"
-                            id="editSteamId"
-                        >
+                        <div id="editSteamIdGroup" style="display: none;">
+
+                            <input
+                                type="text"
+                                id="editSteamId"
+                                placeholder="765611980xxxxxxxx"
+                                disabled
+                            >
+
+                            <small class="identity-hint">
+                                SteamID требуется только для повышения с кадета.
+                            </small>
+
+                        </div>
 
                     </div>
 
@@ -290,7 +272,7 @@
                 </div>
 
 
-                <!-- ПРАКТИЧЕСКИЕ И ТЕОРЕТИЧЕСКИЕ ТРЕНИРОВКИ -->
+                <!-- ТРЕНИРОВКИ -->
 
                 <div
                     id="group-training"
@@ -310,8 +292,6 @@
 
                     </div>
 
-
-                    <!-- ДОПОЛНИТЕЛЬНЫЕ ПОЛЯ ПРАКТИЧЕСКИХ ТРЕНИРОВОК -->
 
                     <div
                         id="group-practical-details"
@@ -378,7 +358,7 @@
                 </div>
 
 
-                <!-- ДАТА РАПОРТА ИЛИ ТРЕНИРОВКИ -->
+                <!-- ДАТА -->
 
                 <div
                     id="group-date"
